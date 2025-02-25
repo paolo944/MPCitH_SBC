@@ -1,6 +1,7 @@
-u_pub
-v_pub
-x_priv
-y_priv
+u.pub
+v.pub
+x
+y
+g
 
 *.sage.py

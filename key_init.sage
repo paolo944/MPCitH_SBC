@@ -24,7 +24,7 @@ n = 130 # Vectors's size
 k = 257 # Degree of field extension
 
 F_q = GF(q)
-F_qn = GF(q^k, 'x')
+F_qn = GF(q^k, 't')
 
 while(True):
     x_prime = [F_q.random_element() for _ in range(n-2)]
@@ -68,9 +68,15 @@ while(True):
     # If all is good
     break
 
-save_vector(v, "v_pub.sobj")
-save_vector(u, "u_pub.sobj")
-save_vector(x, "x_priv.sobj")
-save_vector(y, "y_priv.sobj")
+# Test the instance
+v_x = v.dot_product(x)
+v_y = v.dot_product(y)
+
+assert u_x * v_y == u_y * v_x, "NSBC not right"
+
+save_vector(v, "v.pub")
+save_vector(u, "u.pub")
+save_vector(x, "x")
+save_vector(y, "y")
 
 print("generated and saved private and public keys")
