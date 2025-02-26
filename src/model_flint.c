@@ -5,6 +5,7 @@
 #include "flint/fq_nmod_vec.h"
 #include "flint/fq_nmod_mpoly.h"
 #include "read_fq.h"
+#include "gen_g_poly.h"
 
 int main(void)
 {
@@ -38,23 +39,17 @@ int main(void)
     read_fq_nmod_vec(x, "keys/x", n, field);
     read_fq_nmod_vec(y, "keys/y", n, field);
 
-    //_fq_nmod_vec_randtest(u, state, n, field);
+    //Compute the polynomial g
+    fq_nmod_mpoly_t g;
+    fq_nmod_mpoly_init(g, mpoly_ring);
 
-    printf("u: ");
-    _fq_nmod_vec_print(u, n, field);
-    printf("\nv: ");
-    _fq_nmod_vec_print(v, n, field);
-    printf("\nx: ");
-    _fq_nmod_vec_print(x, n, field);
-    printf("\ny: ");
-    _fq_nmod_vec_print(y, n, field);
-    printf("\n");
+    void gen_g_poly(fq_nmod_mpoly_t *g, fq_nmod_struct *u, fq_nmod_struct *v, const fq_nmod_mpoly_ctx_t mpoly_ring);
 
     // Clear polys
-    //_fq_nmod_vec_clear(u, n, field);
-    //_fq_nmod_vec_clear(v, n, field);
-    //_fq_nmod_vec_clear(x, n, field);
-    //_fq_nmod_vec_clear(y, n, field);
+    _fq_nmod_vec_clear(u, n, field);
+    _fq_nmod_vec_clear(v, n, field);
+    _fq_nmod_vec_clear(x, n, field);
+    _fq_nmod_vec_clear(y, n, field);
 
     // Field and ring clean
     fq_nmod_mpoly_ctx_clear(mpoly_ring);

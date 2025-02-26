@@ -34,12 +34,7 @@ void read_fq_nmod_vec(fq_nmod_struct *vec, const char *fn, int size, const fq_nm
             perror("Format error while reading the file\n");
             exit(EXIT_FAILURE);
         }
-        nmod_poly_print_pretty(tmp_poly, "t");
-        printf("\n");
-        fq_nmod_set_nmod_poly((fq_nmod_t){vec[i]}, tmp_poly, field);
-        //fq_nmod_print((fq_nmod_t){vec[i]}, field);
-        //printf("\n");
-        //printf("sizeof vec[%d]:%ld\tsizeof tmp:%ld\n", i, sizeof(vec[i]), sizeof(tmp_poly));
+        fq_nmod_set_nmod_poly(&vec[i], tmp_poly, field);
     }
 
     nmod_poly_clear(tmp_poly);
