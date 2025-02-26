@@ -21,8 +21,6 @@ void read_fq_nmod_vec(fq_nmod_struct *vec, const char *fn, int size, const fq_nm
         exit(EXIT_FAILURE);
     }
 
-    printf("Reading the vector of size %d\n", size);
-
     fseek(f, 2, SEEK_CUR);
 
     nmod_poly_t tmp_poly;
