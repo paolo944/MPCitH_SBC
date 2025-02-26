@@ -14,7 +14,10 @@ void read_fq_nmod_vec(fq_nmod_struct *vec, const char *fn, int size, const fq_nm
     }
 
     int size2 = 0;
-    fscanf(f, "%d", &size2);
+    if(fscanf(f, "%d", &size2) != 1){
+        perror("Format error while reading the file\n");
+        exit(EXIT_FAILURE);
+    }
 
     if(size2 != size){
         perror("The size of the vector and the size given doesn't match\n");
