@@ -1,7 +1,5 @@
-u.pub
-v.pub
-x
-y
-g
+keys/
+model
 
+*.o
 *.sage.py

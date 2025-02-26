@@ -8,16 +8,17 @@ def linear_dependance(u, v):
 
 def save_vector(vector, file_name):
     F = vector[0].parent()
-    variables = F.gens()
+    characteristic = F.characteristic()
     with open(file_name, "w") as f:
-        if(variables != (1)):
-            for i in variables[:-1]:
-                f.write(i + ",")
-            f.write(str(variables[-1]) + "\n")
-        f.write(str(F.characteristic()) + "\n")
+        f.write(str(len(vector)) + "  ")
         for v in vector[:-1]:
-            f.write(str(v) + ",\n")
-        f.write(str(v))
+            v = v.polynomial()
+            f.write(str(v.degree()+1) + " " + str(characteristic))
+            dense_coeffs = [v.coefficient(i) for i in range(v.degree() + 1)]
+            if(len(dense_coeffs) > 0):
+                f.write("  " + " ".join(map(str, dense_coeffs)) + " ")
+            else:
+                f.write(" ")
 
 q = 2 # Field characteristic
 n = 130 # Vectors's size
@@ -74,9 +75,9 @@ v_y = v.dot_product(y)
 
 assert u_x * v_y == u_y * v_x, "NSBC not right"
 
-save_vector(v, "v.pub")
-save_vector(u, "u.pub")
-save_vector(x, "x")
-save_vector(y, "y")
+save_vector(v, "keys/v.pub")
+save_vector(u, "keys/u.pub")
+save_vector(x, "keys/x")
+save_vector(y, "keys/y")
 
 print("generated and saved private and public keys")
