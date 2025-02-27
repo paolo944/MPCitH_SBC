@@ -39,6 +39,7 @@ int main(void)
     ulong q = 2;    // Field characteristic
     slong n = 130;  // Vectors size
     slong k = 257;  // Degree of field extension
+    slong nvars = 2*(n-2);
 
     // Field and ring init
     const char *var = "t";
@@ -47,7 +48,7 @@ int main(void)
     fq_nmod_ctx_init_ui(field, q, k, var);
 
     fq_nmod_mpoly_ctx_t mpoly_ring;
-    fq_nmod_mpoly_ctx_init(mpoly_ring, 2*(n-2), ORD_DEGREVLEX, field);
+    fq_nmod_mpoly_ctx_init(mpoly_ring, nvars, ORD_DEGREVLEX, field);
 
     // u and v init
     fq_nmod_struct *u, *v;
@@ -82,16 +83,32 @@ int main(void)
     // Test the keys by evaluating g on x and y
     fq_nmod_t ev;
     fq_nmod_init(ev, field);
-    fq_nmod_print_pretty(ev, field);
+    fq_nmod_randtest_not_zero(ev, state, field);
+    //fq_nmod_print_pretty(ev, field);
+    //fq_nmod_clear(ev, field);
+    //printf("coucou\n");
 
-    fq_nmod_struct *vals = _fq_nmod_vec_init(2*(n-2), field);
-    _fq_nmod_vec_set(vals, x, n-2, field);    
-    _fq_nmod_vec_set(&vals[n-2], y, n-2, field);
+    slong i;
+
+    fq_nmod_struct **vals;
+    vals = (fq_nmod_struct **) flint_malloc(nvars*sizeof(fq_nmod_struct *));
+    for (i = 0; i < nvars/2; i++)
+    {
+        vals[i] = (fq_nmod_struct *) flint_malloc(sizeof(fq_nmod_struct));
+        fq_nmod_init(vals[i], field);
+        fq_nmod_set(vals[i], (fq_nmod_t){x[i]}, field);
+    }
+    for (i = nvars/2; i < nvars; i++)
+    {
+        vals[i] = (fq_nmod_struct *) flint_malloc(sizeof(fq_nmod_struct));
+        fq_nmod_init(vals[i], field);
+        fq_nmod_set(vals[i], (fq_nmod_t){y[i - nvars/2]}, field);
+    }
 
     //_fq_nmod_vec_print(vals, 2*(n-2), field);
-
-    fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, (nmod_poly_struct * const*)vals, mpoly_ring);
-    printf("ici enfin\n");
+    //printf("caca\n");
+    fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, vals, mpoly_ring);
+    //printf("ici enfin\n");
     fq_nmod_print_pretty(ev, field);
 
     fq_nmod_clear(ev, field);
@@ -101,7 +118,13 @@ int main(void)
     _fq_nmod_vec_clear(v, n, field);
     _fq_nmod_vec_clear(x, n, field);
     _fq_nmod_vec_clear(y, n, field);
-    _fq_nmod_vec_clear(vals, n, field);
+    
+    for (slong i = 0; i < nvars; i++)
+    {
+        fq_nmod_clear(vals[i], field);
+        flint_free(vals[i]);
+    }
+    flint_free(vals);
 
     fq_nmod_mpoly_clear(g, mpoly_ring);
 
