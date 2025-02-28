@@ -4,17 +4,21 @@
 #include "flint/fq_nmod.h"
 #include "flint/fq_nmod_vec.h"
 #include "flint/fq_nmod_mpoly.h"
+#include "flint/nmod_mpoly.h"
+#include "flint/thread_support.h"
 #include "read_fq.h"
 #include "gen_g_poly.h"
+#include "poly_sys.h"
+#include <time.h>
 
 static inline void gen_monomials_str(char **monomials, slong size)
 {
     for(slong i = 0; i < size; i++)
     {
-        monomials[i] = (char*)calloc(2, sizeof(char));
-        monomials[i + size] = (char*)calloc(2, sizeof(char));
-        sprintf(monomials[i], "x%ld", i);
-        sprintf(monomials[i + size], "y%ld", i);
+        monomials[i] = (char*)calloc(5, sizeof(char));
+        monomials[i + size] = (char*)calloc(5, sizeof(char));
+        sprintf(monomials[i], "x%ld", i+1);
+        sprintf(monomials[i + size], "y%ld", i+1);
     }
     return;
 }
@@ -32,9 +36,17 @@ static inline void clear_monomials_str(char **monomials, slong size)
 
 int main(void)
 {
+    struct timespec start, end;
+    double elapsed;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     // Random init
     flint_rand_t state;
     flint_randinit(state);
+
+    // Use 8 threads instead of 1
+    flint_set_num_threads(8);
 
     ulong q = 2;    // Field characteristic
     slong n = 130;  // Vectors size
@@ -48,7 +60,7 @@ int main(void)
     fq_nmod_ctx_init_ui(field, q, k, var);
 
     fq_nmod_mpoly_ctx_t mpoly_ring;
-    fq_nmod_mpoly_ctx_init(mpoly_ring, nvars, ORD_DEGREVLEX, field);
+    fq_nmod_mpoly_ctx_init(mpoly_ring, nvars, ORD_LEX, field);
 
     // u and v init
     fq_nmod_struct *u, *v;
@@ -60,7 +72,7 @@ int main(void)
     y = _fq_nmod_vec_init(n, field);
 
     // Read u and v
-    printf("Reading the 4 vectors/keys\n");
+    printf("-------Reading the 4 vectors/keys\n");
     read_fq_nmod_vec(u, "keys/u.pub", n, field);
     read_fq_nmod_vec(v, "keys/v.pub", n, field);
     read_fq_nmod_vec(x, "keys/x", n, field);
@@ -70,23 +82,51 @@ int main(void)
     fq_nmod_mpoly_t g;
     fq_nmod_mpoly_init(g, mpoly_ring);
 
-    printf("generating the g polynomial\n");
+    printf("-------Generating the g polynomial\n");
     gen_g_poly(g, u, v, mpoly_ring, n);
 
-    //char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
-    //gen_monomials_str(monomials, n-2);
-    //fq_nmod_mpoly_print_pretty(g, (const char**)monomials, mpoly_ring);
-    //clear_monomials_str(monomials, n-2);
+    printf("-------Generated g\n");
 
-    printf("generated g\n");
+    // Clear polys
+    _fq_nmod_vec_clear(u, n, field);
+    _fq_nmod_vec_clear(v, n, field);
+
+    // char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
+    // gen_monomials_str(monomials, n-2);
+    // fq_nmod_mpoly_print_pretty(g, (const char**)monomials, mpoly_ring);
+    // clear_monomials_str(monomials, n-2);
+// 
+    // for(slong i = 0; i < g->length; i++)
+    // {
+        // printf("i: %ld coeff: %ld exp: %ld\n", i, g->coeffs[i], g->exps[i]);
+    // }
+
+    nmod_mpoly_t *system;
+    nmod_mpoly_ctx_t system_mpoly_ring;
+
+    nmod_mpoly_ctx_init(system_mpoly_ring, nvars, ORD_DEGREVLEX, q);
+
+    init_system(&system, system_mpoly_ring, k);
+
+    printf("-------Modelising the system\n");
+
+    create_poly_system(g, &system, mpoly_ring, system_mpoly_ring);
+
+    printf("-------Writing the system in system.txt\n");
+
+    char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
+    gen_monomials_str(monomials, n-2);
+
+    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.txt", k);
+
+    clear_monomials_str(monomials, n-2);
+
+    clear_system(&system, system_mpoly_ring, k);
+
 
     // Test the keys by evaluating g on x and y
     fq_nmod_t ev;
     fq_nmod_init(ev, field);
-    fq_nmod_randtest_not_zero(ev, state, field);
-    //fq_nmod_print_pretty(ev, field);
-    //fq_nmod_clear(ev, field);
-    //printf("coucou\n");
 
     slong i;
 
@@ -105,17 +145,15 @@ int main(void)
         fq_nmod_set(vals[i], (fq_nmod_t){y[i - nvars/2]}, field);
     }
 
-    //_fq_nmod_vec_print(vals, 2*(n-2), field);
-    //printf("caca\n");
     fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, vals, mpoly_ring);
-    //printf("ici enfin\n");
-    fq_nmod_print_pretty(ev, field);
+    
+    printf("-------Testing if g(x, y) = 0-------\n");
+    if(fq_nmod_is_zero(ev, field))
+        printf("\tg(x, y) = 0\n");
+    else
+        printf("\tg(x, y) != 0\n");
 
-    fq_nmod_clear(ev, field);
-
-    // Clear polys
-    _fq_nmod_vec_clear(u, n, field);
-    _fq_nmod_vec_clear(v, n, field);
+    // More clear
     _fq_nmod_vec_clear(x, n, field);
     _fq_nmod_vec_clear(y, n, field);
     
@@ -126,6 +164,8 @@ int main(void)
     }
     flint_free(vals);
 
+    fq_nmod_clear(ev, field);
+
     fq_nmod_mpoly_clear(g, mpoly_ring);
 
     // Field and ring clean
@@ -133,6 +173,11 @@ int main(void)
     fq_nmod_ctx_clear(field);
 
     flint_randclear(state);
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+    printf("Time: %.9f secondes\tusing %ld threads\n", elapsed, flint_get_num_available_threads());
+
 
     return 0;
 }

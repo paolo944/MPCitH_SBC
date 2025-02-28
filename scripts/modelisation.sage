@@ -32,8 +32,8 @@ def construct_g(R, monomials, u, v, n):
 
 #def eval_g(g, x, y):
 
-x, _ = load_vector("x")
-y, _ = load_vector("y")
+x, _ = load_vector("keys/x")
+y, _ = load_vector("keys/y")
 
 xy = x[:-2] + y[:-2]
 
@@ -48,8 +48,8 @@ generator = F_qn.gen()
 
 basis = [generator^i for i in range(k)]
 
-u, _ = load_vector("u.pub")
-v, _ = load_vector("v.pub")
+u, _ = load_vector("keys/u.pub")
+v, _ = load_vector("keys/v.pub")
 
 monomials = ['x'+str(i) for i in range(1, n-1)] + ['y'+str(i) for i in range(1, n-1)]
 

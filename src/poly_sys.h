@@ -2,11 +2,15 @@
 #define POLY_SYS_H
 
 #include "flint/fq_nmod_mpoly.h"
+#include "flint/nmod_mpoly.h"
 
-void create_poly_sys(fq_nmod_mpoly_t g, fq_nmod_mpoly_t **system, const fq_nmod_mpoly_ctx_t mpoly_ring, slong k, const char **x);
+void init_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong k);
 
-void clear_sys(fq_nmod_mpoly_t *system, fq_nmod_mpoly_ctx_t mpoly_ring, slong k);
+void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_mpoly_ctx_t mpoly_ring,
+    const nmod_mpoly_ctx_t system_mpoly_ring);
 
-void fprint_sys(fq_nmod_mpoly_t *system, const char **x, const fq_nmod_mpoly_ctx_t mpoly_ring, slong k, const char *fn);
+void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong k);
+
+void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong k);
 
 #endif

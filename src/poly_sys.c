@@ -4,72 +4,83 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void create_poly_sys(fq_nmod_mpoly_t g, fq_nmod_mpoly_t **system, const fq_nmod_mpoly_ctx_t mpoly_ring, slong k, const char **x)
+static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, const fq_nmod_ctx_t field, 
+                    const nmod_mpoly_ctx_t mpoly_ring, slong i, slong k)
 {
-    slong i;
-    fq_nmod_mpoly_t q, r, divisor;
-    fq_nmod_t fq_divisor;
-    nmod_poly_t poly_divisor;
+    slong degree = fq_nmod_ctx_degree(field);
+    ulong p = fq_nmod_ctx_prime(field);
 
-    fq_nmod_init(fq_divisor, mpoly_ring->fqctx);
-    nmod_poly_init(poly_divisor, 2);
+    nmod_poly_t t;
+    nmod_poly_init(t, p);
+    fq_nmod_get_nmod_poly(t, c, field);
 
-    fq_nmod_mpoly_init(q, mpoly_ring);
-    fq_nmod_mpoly_init(r, mpoly_ring);
-    fq_nmod_mpoly_init(divisor, mpoly_ring);
+    ulong coeff = 0;
 
-    fq_nmod_mpoly_set(r, g, mpoly_ring);
+    unsigned long* exp = (unsigned long*)flint_calloc(k, sizeof(unsigned long));
 
-    system = (fq_nmod_mpoly_t **)flint_malloc(k*sizeof(fq_nmod_mpoly_t *));
+    if (exp == NULL) {
+        fprintf(stderr, "Erreur d'allocation mémoire\n");
+        return;
+    }
 
-    i = k-1;
-
-    do
-    {
-        system[i] = (fq_nmod_mpoly_t *)flint_malloc(sizeof(fq_nmod_mpoly_t));
-        fq_nmod_mpoly_init(system[i], mpoly_ring);
-        // Set to t^k-1 then t^k-1... t, 1)
-        nmod_poly_zero(poly_divisor);
-        nmod_poly_set_coeff_ui(poly_divisor, i, 1);
-        nmod_poly_print_pretty(poly_divisor, "t");
-        fq_nmod_set_nmod_poly(fq_divisor, poly_divisor, mpoly_ring->fqctx);
-        fq_nmod_mpoly_set_fq_nmod(divisor, fq_divisor, mpoly_ring);
-
-        fq_nmod_mpoly_divrem(q, r, r, divisor, mpoly_ring);
-        
-        printf(" q: ");
-        fq_nmod_mpoly_print_pretty(q, x, mpoly_ring);
-        printf(" r: ");
-        fq_nmod_mpoly_print_pretty(r, x, mpoly_ring);
-
-        fq_nmod_mpoly_set(*system[i], q, mpoly_ring);
-        
-        i -= 1;
-    }while(i > -1);
-
-    fq_nmod_clear(fq_divisor, mpoly_ring->fqctx);
+    exp[i] = 1;
     
-    nmod_poly_clear(poly_divisor);
+    for(slong j = 0; j < degree; j++)
+    {
+        coeff = nmod_poly_get_coeff_ui(t, j);
+        nmod_mpoly_set_coeff_ui_ui(&(*system)[j], coeff, exp, mpoly_ring);
+    }
 
-    fq_nmod_mpoly_clear(q, mpoly_ring);
-    fq_nmod_mpoly_clear(r, mpoly_ring);
-    fq_nmod_mpoly_clear(divisor, mpoly_ring);
+    flint_free(exp);
+
+    nmod_poly_clear(t);
 
     return;
 }
 
-void clear_sys(fq_nmod_mpoly_t *system, fq_nmod_mpoly_ctx_t mpoly_ring, slong k)
+void init_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong k)
 {
-    for(slong i = 0; i < k; i++)
-    {
-        printf("clear i: %ld\n", i);
-        fq_nmod_mpoly_clear(system[i], mpoly_ring);
-        flint_free(system[i]);
+    *system = (nmod_mpoly_t *)flint_calloc(k, sizeof(nmod_mpoly_t));
+
+    if (*system == NULL) {
+        fprintf(stderr, "Erreur d'allocation mémoire pour le système de polynômes\n");
+        return;
     }
-    flint_free(system);
+
+    for (slong i = 0; i < k; i++)
+        nmod_mpoly_init(&(*system)[i], mpoly_ring);
+
+    return;
 }
 
-void fprint_sys(fq_nmod_mpoly_t *system, const char **x, const fq_nmod_mpoly_ctx_t mpoly_ring, slong k, const char *fn)
+void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_mpoly_ctx_t mpoly_ring,
+                    const nmod_mpoly_ctx_t system_mpoly_ring)
+{
+    fq_nmod_t c;
+    fq_nmod_init(c, mpoly_ring->fqctx);
+
+    slong k = fq_nmod_mpoly_ctx_nvars(mpoly_ring);
+    
+    for(slong i = 0; i < k; i++)
+    {
+        fq_nmod_mpoly_get_term_coeff_fq_nmod(c, g, i, mpoly_ring);
+        append_system(system, c, mpoly_ring->fqctx, system_mpoly_ring, i, k);
+    }
+
+    fq_nmod_clear(c, mpoly_ring->fqctx);
+
+    return;
+}
+
+void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong k)
+{
+    for(slong i = 0; i < k; i++)
+        nmod_mpoly_clear(&(*system)[i], mpoly_ring);
+
+    flint_free(*system);
+}
+
+void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong k)
 {
     FILE *f = fopen(fn, "w");
     if (!f) {
@@ -87,7 +98,9 @@ void fprint_sys(fq_nmod_mpoly_t *system, const char **x, const fq_nmod_mpoly_ctx
             exit(EXIT_FAILURE);
         }
         
-        fq_nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
+        nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
+
+        fprintf(f, "\n");
         
         fclose(f);
     }
