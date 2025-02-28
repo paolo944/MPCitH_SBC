@@ -45,9 +45,6 @@ int main(void)
     flint_rand_t state;
     flint_randinit(state);
 
-    // Use 8 threads instead of 1
-    flint_set_num_threads(8);
-
     ulong q = 2;    // Field characteristic
     slong n = 130;  // Vectors size
     slong k = 257;  // Degree of field extension
@@ -147,7 +144,7 @@ int main(void)
 
     fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, vals, mpoly_ring);
     
-    printf("-------Testing if g(x, y) = 0-------\n");
+    printf("-------Testing if g(x, y) = 0\n");
     if(fq_nmod_is_zero(ev, field))
         printf("\tg(x, y) = 0\n");
     else
@@ -176,7 +173,7 @@ int main(void)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-    printf("Time: %.9f secondes\tusing %ld threads\n", elapsed, flint_get_num_available_threads());
+    printf("Time: %.9f secondes\n", elapsed);
 
 
     return 0;
