@@ -84,10 +84,6 @@ int main(void)
 
     printf("-------Generated g\n");
 
-    // Clear polys
-    _fq_nmod_vec_clear(u, n, field);
-    _fq_nmod_vec_clear(v, n, field);
-
     // char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     // gen_monomials_str(monomials, n-2);
     // fq_nmod_mpoly_print_pretty(g, (const char**)monomials, mpoly_ring);
@@ -142,18 +138,22 @@ int main(void)
         fq_nmod_set(vals[i], (fq_nmod_t){y[i - nvars/2]}, field);
     }
 
+    for(slong i = 0; i < nvars; i++)
+    {
+        fq_nmod_print_pretty(vals[i], field);
+        printf("\n");
+    }
+
     fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, vals, mpoly_ring);
     
     printf("-------Testing if g(x, y) = 0\n");
     if(fq_nmod_is_zero(ev, field))
         printf("\tg(x, y) = 0\n");
-    else
-        printf("\tg(x, y) != 0\n");
-
-    // More clear
-    _fq_nmod_vec_clear(x, n, field);
-    _fq_nmod_vec_clear(y, n, field);
-    
+    else{
+        printf("\tg(x, y) != 0\n\t");
+        fq_nmod_print_pretty(ev, field);
+    }
+   
     for (slong i = 0; i < nvars; i++)
     {
         fq_nmod_clear(vals[i], field);
@@ -165,8 +165,15 @@ int main(void)
 
     fq_nmod_mpoly_clear(g, mpoly_ring);
 
+    // Clear polys
+    _fq_nmod_vec_clear(u, n, field);
+    _fq_nmod_vec_clear(v, n, field);
+    _fq_nmod_vec_clear(x, n, field);
+    _fq_nmod_vec_clear(y, n, field);
+
     // Field and ring clean
     fq_nmod_mpoly_ctx_clear(mpoly_ring);
+    nmod_mpoly_ctx_clear(system_mpoly_ring);
     fq_nmod_ctx_clear(field);
 
     flint_randclear(state);

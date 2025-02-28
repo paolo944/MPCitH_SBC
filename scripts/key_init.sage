@@ -10,15 +10,15 @@ def save_vector(vector, file_name):
     F = vector[0].parent()
     characteristic = F.characteristic()
     with open(file_name, "w") as f:
-        f.write(str(len(vector)) + "  ")
-        for v in vector[:-1]:
+        for v in vector:
             v = v.polynomial()
+            coefficients = [v.coefficient(i) for i in range(v.degree() + 1)] 
             f.write(str(v.degree()+1) + " " + str(characteristic))
-            dense_coeffs = [v.coefficient(i) for i in range(v.degree() + 1)]
-            if(len(dense_coeffs) > 0):
-                f.write("  " + " ".join(map(str, dense_coeffs)) + " ")
+            if(len(coefficients) > 0):
+                coeff_list = "  " + " ".join(str(i) for i in coefficients)
+                f.write(coeff_list + "\n")
             else:
-                f.write(" ")
+                f.write("\n")
 
 q = 2 # Field characteristic
 n = 130 # Vectors's size
@@ -86,3 +86,8 @@ save(x, "keys/x.sobj")
 save(y, "keys/y.sobj")
 
 print("generated and saved private and public keys")
+
+for i in x[:-2]:
+    print(i)
+for i in y[:-2]:
+    print(i)

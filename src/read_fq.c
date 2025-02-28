@@ -13,19 +13,6 @@ void read_fq_nmod_vec(fq_nmod_struct *vec, const char *fn, int size, const fq_nm
         exit(EXIT_FAILURE);
     }
 
-    int size2 = 0;
-    if(fscanf(f, "%d", &size2) != 1){
-        perror("Format error while reading the file\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if(size2 != size){
-        perror("The size of the vector and the size given doesn't match\n");
-        exit(EXIT_FAILURE);
-    }
-
-    fseek(f, 2, SEEK_CUR);
-
     nmod_poly_t tmp_poly;
     nmod_poly_init(tmp_poly, 2);
 
