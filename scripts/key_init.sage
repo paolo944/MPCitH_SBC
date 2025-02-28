@@ -75,9 +75,14 @@ v_y = v.dot_product(y)
 
 assert u_x * v_y == u_y * v_x, "NSBC not right"
 
-save_vector(v, "keys/v.pub")
 save_vector(u, "keys/u.pub")
+save_vector(v, "keys/v.pub")
 save_vector(x, "keys/x")
 save_vector(y, "keys/y")
+
+save(u, "keys/u.sobj")
+save(v, "keys/v.sobj")
+save(x, "keys/x.sobj")
+save(y, "keys/y.sobj")
 
 print("generated and saved private and public keys")

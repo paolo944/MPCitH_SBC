@@ -1,21 +1,3 @@
-def load_vector(file_name):
-    with open(file_name, "r") as f:
-        variables_line = f.readline().strip()
-        variables = tuple(map(str, variables_line.split(',')))
-
-        characteristic_line = f.readline().strip()
-        characteristic = int(characteristic_line)
-        
-        vector = []
-        for line in f:
-            line = line.strip().strip(',\n').replace('^', '**')
-            vector.append(eval(line))
-        
-        F = GF(characteristic, len(variables))
-        loaded_vector = vector
-    
-    return loaded_vector, F
-
 def construct_g(R, monomials, u, v, n):
     ux = R(u[n-2])
     vx = R(v[n-2])
@@ -32,10 +14,10 @@ def construct_g(R, monomials, u, v, n):
 
 #def eval_g(g, x, y):
 
-x, _ = load_vector("keys/x")
-y, _ = load_vector("keys/y")
+x = load("keys/x.sobj")
+y = load("keys/y.sobj")
 
-xy = x[:-2] + y[:-2]
+xy = vector(x[:-2].list() + y[:-2].list())
 
 q = 2  # Field characteristic
 n = 130  # Vectors' size
@@ -44,12 +26,14 @@ k = 257  # Degree of field extension
 F_q = GF(q)
 F_qn.<t> = GF(q^k, 't')
 
-generator = F_qn.gen()
+u = load("keys/u.sobj")
+v = load("keys/v.sobj")
 
-basis = [generator^i for i in range(k)]
+assert len(u) == len(v) == len(x) == len(y), "Sizes do not match"
 
-u, _ = load_vector("keys/u.pub")
-v, _ = load_vector("keys/v.pub")
+assert u.dot_product(x) * v.dot_product(y) == u.dot_product(y) * v.dot_product(x), "NSBC not right"
+
+print("assert ok")
 
 monomials = ['x'+str(i) for i in range(1, n-1)] + ['y'+str(i) for i in range(1, n-1)]
 
@@ -64,7 +48,9 @@ g = construct_g(R, monomials, u, v, n)
 
 print("computed g")
 
-substitutions = {monomials[i]: xy[i] for i in range(2*(n-2))}
+print(f"len(xy): {len(xy)} type: {type(xy)}")
+
+substitutions = {monomials[i]: xy[i] for i in range(k-1)}
 
 evaluation = g.subs(substitutions)
 print(evaluation)
