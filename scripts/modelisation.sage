@@ -12,7 +12,22 @@ def construct_g(R, monomials, u, v, n):
 
     return ux*vy - uy*vx
 
-#def eval_g(g, x, y):
+def decompose_g(R, g, basis, monomials_str, k):
+    p = R.characteristic()
+    Rprime = PolynomialRing(GF(p), monomials_str)
+    system = [Rprime(0) for i in range(k)]
+    monomials = g.monomials()
+    g_coeffs = [g.monomial_coefficient(i) for i in monomials]
+
+    for i in range(len(g_coeffs)):
+        tmp_coeffs = g_coeffs[i].list()
+        for j in range(len(tmp_coeffs)):
+            if(tmp_coeffs[j] == 1):
+                system[j] += monomials[i]
+                if(i+j % 100000 == 0):
+                    print(f"i+j = {i+j} / {len(g_coeffs)*k-1}")
+    return system
+
 
 x = load("keys/x.sobj")
 y = load("keys/y.sobj")
@@ -21,7 +36,9 @@ xy = vector(x[:-2].list() + y[:-2].list())
 
 q = 2  # Field characteristic
 n = 130  # Vectors' size
-k = 257  # Degree of field extension
+k = 2*(n-2)+1  # Degree of field extension
+
+assert k == 257, "Error with k"
 
 F_q = GF(q)
 F_qn.<t> = GF(q^k, 't')
@@ -35,28 +52,30 @@ assert u.dot_product(x) * v.dot_product(y) == u.dot_product(y) * v.dot_product(x
 
 print("assert ok")
 
-monomials = ['x'+str(i) for i in range(1, n-1)] + ['y'+str(i) for i in range(1, n-1)]
+monomials_str = ['x'+str(i) for i in range(1, n-1)] + ['y'+str(i) for i in range(1, n-1)]
 
 # Créer l'anneau de polynômes en x1, x2,..., xn-2 et y1, y2,..., yn-2
-R = PolynomialRing(F_qn, monomials)
+R = PolynomialRing(F_qn, monomials_str)
 
 # Convertir les monomiaux en polynômes dans R
-monomials = [R(monom) for monom in monomials]
+monomials = [R(monom) for monom in monomials_str]
 
 # Construire g
 g = construct_g(R, monomials, u, v, n)
 
 print("computed g")
 
-print(f"len(xy): {len(xy)} type: {type(xy)}")
-
 substitutions = {monomials[i]: xy[i] for i in range(k-1)}
 
 evaluation = g.subs(substitutions)
-print(evaluation)
+print(f"g(x, y) == {evaluation}")
 
 coefficients = []
 
-#quotient, reminder = g.quo_rem(t^(k-1))
+#quotient, reminder = g.quo_rem(t**2)
 
-#print("Décomposition de g dans la base des puissances de t:", quotient)
+basis = [F_qn.gen()**i for i in range(k)]
+
+system = decompose_g(R, g, basis, monomials_str, k)
+
+print("system computed")

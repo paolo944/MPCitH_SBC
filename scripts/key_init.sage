@@ -22,7 +22,7 @@ def save_vector(vector, file_name):
 
 q = 2 # Field characteristic
 n = 130 # Vectors's size
-k = 257 # Degree of field extension
+k = 2*(n-2)+1 # Degree of field extension
 
 F_q = GF(q)
 F_qn = GF(q^k, 't')

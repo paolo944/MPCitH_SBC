@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// La construction du système n'est pas correct, elle ne prends
+// du tout en compte le polynôme de la bonne façon
+
 static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, const fq_nmod_ctx_t field, 
                     const nmod_mpoly_ctx_t mpoly_ring, slong i, slong k)
 {
