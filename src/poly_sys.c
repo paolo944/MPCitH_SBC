@@ -28,7 +28,7 @@ static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, const fq_nm
     for(slong j = 0; j < degree; j++)
     {
         coeff = nmod_poly_get_coeff_ui(t, j);
-        nmod_mpoly_set_coeff_ui_ui(&(*system)[j], coeff, exp, mpoly_ring);
+        nmod_mpoly_set_coeff_ui_ui((nmod_mpoly_struct *)(&(*system)[j]), coeff, exp, mpoly_ring);
     }
 
     flint_free(exp);
@@ -48,7 +48,7 @@ void init_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong
     }
 
     for (slong i = 0; i < k; i++)
-        nmod_mpoly_init(&(*system)[i], mpoly_ring);
+        nmod_mpoly_init((nmod_mpoly_struct *)(&(*system)[i]), mpoly_ring);
 
     return;
 }
@@ -75,7 +75,7 @@ void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_
 void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong k)
 {
     for(slong i = 0; i < k; i++)
-        nmod_mpoly_clear(&(*system)[i], mpoly_ring);
+        nmod_mpoly_clear((nmod_mpoly_struct *)(&(*system)[i]), mpoly_ring);
 
     flint_free(*system);
 }
