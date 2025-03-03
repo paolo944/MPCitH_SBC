@@ -107,14 +107,15 @@ int main(void)
 
     printf("-------Writing the system in system.txt\n");
 
-    //char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
-    //gen_monomials_str(monomials, n-2);
-    //fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.txt", k);
-    //clear_monomials_str(monomials, n-2); 
-    //clear_system(&system, system_mpoly_ring, k);
+    char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
+    gen_monomials_str(monomials, n-2);
+    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.txt", k);
+    clear_monomials_str(monomials, n-2); 
+    clear_system(&system, system_mpoly_ring, k);
  
  
     // Test the keys by evaluating g on x and y
+    /*
     fq_nmod_t ev;
     fq_nmod_init(ev, field);
 
@@ -153,6 +154,7 @@ int main(void)
     flint_free(vals);
 
     fq_nmod_clear(ev, field);
+    */
 
     fq_nmod_mpoly_clear(g, mpoly_ring);
 

@@ -1,3 +1,5 @@
+import time
+
 def construct_g(R, monomials, u, v, n):
     ux = R(u[n-2])
     vx = R(v[n-2])
@@ -24,10 +26,9 @@ def decompose_g(R, g, basis, monomials_str, k):
         for j in range(len(tmp_coeffs)):
             if(tmp_coeffs[j] == 1):
                 system[j] += monomials[i]
-                if(i+j % 100000 == 0):
-                    print(f"i+j = {i+j} / {len(g_coeffs)*k-1}")
     return system
 
+start_time = time.time()
 
 x = load("keys/x.sobj")
 y = load("keys/y.sobj")
@@ -78,4 +79,10 @@ basis = [F_qn.gen()**i for i in range(k)]
 
 system = decompose_g(R, g, basis, monomials_str, k)
 
+save(system, "system.sobj")
+
 print("system computed")
+
+end_time = time.time()
+
+print(f"Temps d'exécution : {end_time - start_time} secondes")

@@ -1,6 +1,7 @@
 keys/
 model
 system.txt
+system.sobj
 
 *.o
 *.sage.py
