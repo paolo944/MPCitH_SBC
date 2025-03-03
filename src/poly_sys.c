@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// La construction du système n'est pas correct, elle ne prends
-// du tout en compte le polynôme de la bonne façon
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, fq_nmod_mpoly_t m, 
-                    const fq_nmod_ctx_t field, const nmod_mpoly_ctx_t system_mpoly_ring,
+                    const fq_nmod_ctx_t field, const nmod_mpoly_ctx_t system_mpoly_ring, 
                     const fq_nmod_mpoly_ctx_t mpoly_ring)
 {
     slong degree = fq_nmod_ctx_degree(field);
@@ -23,11 +24,15 @@ static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, fq_nmod_mpo
     unsigned long *exp = (unsigned long*)calloc(fq_nmod_mpoly_ctx_nvars(mpoly_ring), sizeof(unsigned long));
     fq_nmod_mpoly_get_term_exp_ui(exp, m, 0, mpoly_ring);
 
+    #pragma omp parallel for num_threads(8) schedule(dynamic)
     for(slong j = 0; j < degree; j++)
     {
         coeff = nmod_poly_get_coeff_ui(t, j);
-        nmod_mpoly_set_coeff_ui_ui((nmod_mpoly_struct *)(*system + j), coeff, exp, system_mpoly_ring);
+        if(coeff != 0)
+            nmod_mpoly_set_coeff_ui_ui((nmod_mpoly_struct *)(*system + j), coeff, exp, system_mpoly_ring);
     }
+
+    free(exp);
 
     nmod_poly_clear(t);
 

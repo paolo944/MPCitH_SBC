@@ -1,4 +1,4 @@
-CFLAGS = -I/usr/local/include -Wall -O3 -Wextra
+CFLAGS = -I/usr/local/include -Wall -O3 -Wextra -fopenmp
 LDFLAGS = -L/usr/local/lib -lflint -lgmp -lmpfr
 CC = gcc
 SRC_DIR = src
