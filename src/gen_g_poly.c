@@ -63,10 +63,10 @@ void gen_g_poly(fq_nmod_mpoly_t g, fq_nmod_struct *u, fq_nmod_struct *v,
         //printf("\n");
 
         fq_nmod_mpoly_scalar_mul_fq_nmod(tmp1, tmp2, (const fq_nmod_t){u[i]}, mpoly_ring);
-        fq_nmod_mpoly_add(ux, ux, tmp1, mpoly_ring);
+        fq_nmod_mpoly_add(uy, uy, tmp1, mpoly_ring);
 
         fq_nmod_mpoly_scalar_mul_fq_nmod(tmp1, tmp2, (const fq_nmod_t){v[i]}, mpoly_ring);
-        fq_nmod_mpoly_add(vx, vx, tmp1, mpoly_ring);
+        fq_nmod_mpoly_add(vy, vy, tmp1, mpoly_ring);
     }
 
     fq_nmod_mpoly_mul(tmp1, ux, vy, mpoly_ring);
