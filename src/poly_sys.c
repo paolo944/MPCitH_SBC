@@ -101,9 +101,18 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         exit(EXIT_FAILURE);
     }
 
+    for(slong i = 0; i < k-2; i++)
+    {
+        fprintf(f, "%s,", x[i]);
+    }
+    fprintf(f, "%s\n", x[k-2]);
+
+    ulong p = nmod_mpoly_ctx_modulus(mpoly_ring);
+    fprintf(f, "%ld\n", p);
+
     fclose(f);
 
-    for(slong i = 0; i < k; i++)
+    for(slong i = 0; i < k-1; i++)
     {
         f = fopen(fn, "a");
         if (!f) {
@@ -113,8 +122,17 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         
         nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
 
-        fprintf(f, "\n");
+        fprintf(f, ",\n");
         
         fclose(f);
     }
+    f = fopen(fn, "a");
+    if (!f) {
+        perror("Error while opening the file\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    nmod_mpoly_fprint_pretty(f, system[k-1], x, mpoly_ring);
+    
+    fclose(f);
 }

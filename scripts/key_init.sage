@@ -2,6 +2,8 @@
 # NSBC problem by J. Huth and A. Joux
 # article: https://eprint.iacr.org/2023/1685.pdf
 
+import sys
+
 def linear_dependance(u, v):
     M = matrix([u, v])
     return M.rank() < 2
@@ -21,7 +23,7 @@ def save_vector(vector, file_name):
                 f.write("\n")
 
 q = 2 # Field characteristic
-n = 130 # Vectors's size
+n = int(sys.argv[1])  # Vectors's size
 k = 2*(n-2)+1 # Degree of field extension
 
 F_q = GF(q)
@@ -86,8 +88,3 @@ save(x, "keys/x.sobj")
 save(y, "keys/y.sobj")
 
 print("generated and saved private and public keys")
-
-for i in x[:-2]:
-    print(i)
-for i in y[:-2]:
-    print(i)

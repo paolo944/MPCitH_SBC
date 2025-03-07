@@ -34,8 +34,14 @@ static inline void clear_monomials_str(char **monomials, slong size)
     return;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+    if(argc != 2)
+    {
+        printf("Il manque un paramètre\n");
+        return 1;
+    }
+
     struct timespec start, end;
     double elapsed;
 
@@ -45,9 +51,9 @@ int main(void)
     flint_rand_t state;
     flint_randinit(state);
 
-    ulong q = 2;    // Field characteristic
-    slong n = 130;  // Vectors size
-    slong k = 257;  // Degree of field extension
+    ulong q = 2;            // Field characteristic
+    slong n = atoi(argv[1]);            // Vectors size
+    slong k = 2*(n-2)+1;    // Degree of field extension
     slong nvars = 2*(n-2);
 
     // Field and ring init
@@ -109,7 +115,7 @@ int main(void)
 
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);
-    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.txt", k);
+    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.ms", k);
     clear_monomials_str(monomials, n-2); 
     clear_system(&system, system_mpoly_ring, k);
  

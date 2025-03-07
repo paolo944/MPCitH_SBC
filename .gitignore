@@ -5,3 +5,4 @@ system.sobj
 
 *.o
 *.sage.py
+*.ms
