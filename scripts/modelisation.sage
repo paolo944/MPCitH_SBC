@@ -20,12 +20,11 @@ def decompose_g(R, g, basis, monomials_str, k):
     system = [Rprime(0) for i in range(k)]
     monomials = g.monomials()
     g_coeffs = [g.monomial_coefficient(i) for i in monomials]
-
     for i in range(len(g_coeffs)):
         tmp_coeffs = g_coeffs[i].list()
         for j in range(len(tmp_coeffs)):
             if(tmp_coeffs[j] == 1):
-                system[j] += monomials[i]
+                system[j] += Rprime(monomials[i])
     return system
 
 start_time = time.time()
@@ -36,10 +35,8 @@ y = load("keys/y.sobj")
 xy = vector(x[:-2].list() + y[:-2].list())
 
 q = 2  # Field characteristic
-n = 130  # Vectors' size
-k = 2*(n-2)+1  # Degree of field extension
-
-assert k == 257, "Error with k"
+n = int(sys.argv[1])  # Vectors's size
+k = 2*(n-2)+1 # Degree of field extension
 
 F_q = GF(q)
 F_qn.<t> = GF(q^k, 't')

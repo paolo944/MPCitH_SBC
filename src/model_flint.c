@@ -52,9 +52,11 @@ int main(int argc, char **argv)
     flint_randinit(state);
 
     ulong q = 2;            // Field characteristic
-    slong n = atoi(argv[1]);            // Vectors size
+    slong n = atoi(argv[1]);// Vectors size
     slong k = 2*(n-2)+1;    // Degree of field extension
     slong nvars = 2*(n-2);
+
+    printf("q = %ld\nn = %ld\nk = %ld\nnvars = %ld\n", q, n, k, nvars);
 
     // Field and ring init
     const char *var = "t";
@@ -116,7 +118,16 @@ int main(int argc, char **argv)
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);
     fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.ms", k);
-    clear_monomials_str(monomials, n-2); 
+    clear_monomials_str(monomials, n-2);
+
+    int res = 0;
+    res = is_regular_seq(system, system_mpoly_ring, k);
+
+    if(res == 0)
+        printf("Système non régulier\n");
+    else
+        printf("Système régulier\n");
+
     clear_system(&system, system_mpoly_ring, k);
  
  

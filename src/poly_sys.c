@@ -112,6 +112,8 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
 
     fclose(f);
 
+    slong nnz = 0;
+
     for(slong i = 0; i < k-1; i++)
     {
         f = fopen(fn, "a");
@@ -119,7 +121,12 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
             perror("Error while opening the file\n");
             exit(EXIT_FAILURE);
         }
-        
+
+        if(nmod_mpoly_is_canonical(system[i], mpoly_ring))
+            nnz += nmod_mpoly_length(system[i], mpoly_ring);
+        else
+            printf("erreur, polynôme non canonique");
+
         nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
 
         fprintf(f, ",\n");
@@ -132,7 +139,38 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         exit(EXIT_FAILURE);
     }
     
+    if(nmod_mpoly_is_canonical(system[k-1], mpoly_ring))
+            nnz += nmod_mpoly_length(system[k-1], mpoly_ring);
+        else
+            printf("erreur, polynôme non canonique");
+
     nmod_mpoly_fprint_pretty(f, system[k-1], x, mpoly_ring);
-    
+
+    printf("nnz: %ld\n", nnz);
+
     fclose(f);
+}
+
+int is_regular_seq(nmod_mpoly_t *system, const nmod_mpoly_ctx_t mpoly_ring, slong k)
+{
+    nmod_mpoly_t *Q;
+    nmod_mpoly_t R;
+
+    nmod_mpoly_init(R, mpoly_ring);
+
+    init_system(&Q, mpoly_ring, k);
+
+    for(slong i = 1; i < k; i++)
+    {
+        printf("test pour k = %ld\n", i);
+        nmod_mpoly_divrem_ideal(&Q, R, system[i], (nmod_mpoly_struct *const*) system, i, mpoly_ring);
+        if(nmod_mpoly_is_zero(R, mpoly_ring)){
+            clear_system(Q, mpoly_ring, k);
+            return 0;
+        }
+    }
+
+    clear_system(Q, mpoly_ring, k);
+
+    return 1;
 }

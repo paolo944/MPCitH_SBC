@@ -13,4 +13,6 @@ void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slon
 
 void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong k);
 
+int is_regular_seq(nmod_mpoly_t *system, const nmod_mpoly_ctx_t mpoly_ring, slong k);
+
 #endif
