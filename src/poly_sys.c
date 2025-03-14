@@ -117,7 +117,7 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         exit(EXIT_FAILURE);
     }
 
-    for(slong i = 0; i < nvars-2; i++)
+    for(slong i = 0; i < nvars-1; i++)
     {
         fprintf(f, "%s,", x[i]);
     }
