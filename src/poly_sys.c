@@ -79,6 +79,22 @@ void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_
         append_system(system, c, m, mpoly_ring->fqctx, system_mpoly_ring, mpoly_ring);
     }
 
+    slong nvars = nmod_mpoly_ctx_nvars(system_mpoly_ring);
+    slong deg = fq_nmod_ctx_degree(mpoly_ring->fqctx);
+
+    unsigned long *exp = (unsigned long*)calloc(nvars, sizeof(unsigned long));
+
+    for(slong i = deg; i < deg + nvars; i++)
+    {
+        exp[i - deg] = 2;
+        nmod_mpoly_set_coeff_ui_ui((nmod_mpoly_struct *)(*system + i), 1, exp, system_mpoly_ring);
+        exp[i - deg] = 1;
+        nmod_mpoly_set_coeff_ui_ui((nmod_mpoly_struct *)(*system + i), 1, exp, system_mpoly_ring);
+        exp[i - deg] = 0;
+    }
+
+    free(exp);
+
     fq_nmod_clear(c, mpoly_ring->fqctx);
     fq_nmod_mpoly_clear(m, mpoly_ring);
 
@@ -93,7 +109,7 @@ void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slon
     flint_free(*system);
 }
 
-void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong k)
+void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong nvars, slong k)
 {
     FILE *f = fopen(fn, "w");
     if (!f) {
@@ -101,14 +117,11 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         exit(EXIT_FAILURE);
     }
 
-    for(slong i = 0; i < k-2; i++)
+    for(slong i = 0; i < nvars-2; i++)
     {
         fprintf(f, "%s,", x[i]);
     }
-    fprintf(f, "%s\n", x[k-2]);
-
-    ulong p = nmod_mpoly_ctx_modulus(mpoly_ring);
-    fprintf(f, "%ld\n", p);
+    fprintf(f, "%s\n", x[nvars-1]);
 
     fclose(f);
 
@@ -116,6 +129,7 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
 
     for(slong i = 0; i < k-1; i++)
     {
+        printf("i: %ld\n", i);
         f = fopen(fn, "a");
         if (!f) {
             perror("Error while opening the file\n");
@@ -129,7 +143,7 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
 
         nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
 
-        fprintf(f, ",\n");
+        fprintf(f, "\n");
         
         fclose(f);
     }
@@ -149,28 +163,4 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
     printf("nnz: %ld\n", nnz);
 
     fclose(f);
-}
-
-int is_regular_seq(nmod_mpoly_t *system, const nmod_mpoly_ctx_t mpoly_ring, slong k)
-{
-    nmod_mpoly_t *Q;
-    nmod_mpoly_t R;
-
-    nmod_mpoly_init(R, mpoly_ring);
-
-    init_system(&Q, mpoly_ring, k);
-
-    for(slong i = 1; i < k; i++)
-    {
-        printf("test pour k = %ld\n", i);
-        nmod_mpoly_divrem_ideal(&Q, R, system[i], (nmod_mpoly_struct *const*) system, i, mpoly_ring);
-        if(nmod_mpoly_is_zero(R, mpoly_ring)){
-            clear_system(Q, mpoly_ring, k);
-            return 0;
-        }
-    }
-
-    clear_system(Q, mpoly_ring, k);
-
-    return 1;
 }

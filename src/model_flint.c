@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
     nmod_mpoly_ctx_init(system_mpoly_ring, nvars, ORD_DEGREVLEX, q);
 
-    init_system(&system, system_mpoly_ring, k);
+    init_system(&system, system_mpoly_ring, k+nvars);
 
     printf("-------Modelising the system\n");
 
@@ -117,17 +117,8 @@ int main(int argc, char **argv)
 
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);
-    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.ms", k);
+    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.in", nvars, k+nvars);
     clear_monomials_str(monomials, n-2);
-
-    int res = 0;
-    res = is_regular_seq(system, system_mpoly_ring, k);
-
-    if(res == 0)
-        printf("Système non régulier\n");
-    else
-        printf("Système régulier\n");
-
     clear_system(&system, system_mpoly_ring, k);
  
  
