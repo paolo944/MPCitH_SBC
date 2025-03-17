@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <err.h>
+#include <time.h>
+#include <string.h>
+
 #include "flint/flint.h"
 #include "flint/fq_nmod.h"
 #include "flint/fq_nmod_vec.h"
@@ -9,7 +13,6 @@
 #include "read_fq.h"
 #include "gen_g_poly.h"
 #include "poly_sys.h"
-#include <time.h>
 
 static inline void gen_monomials_str(char **monomials, slong size)
 {
@@ -36,11 +39,8 @@ static inline void clear_monomials_str(char **monomials, slong size)
 
 int main(int argc, char **argv)
 {
-    if(argc != 2)
-    {
-        printf("Il manque un paramètre\n");
-        return 1;
-    }
+    if(argc != 4)
+        errx(1, "Il manque des paramètres, il faut lancer comme ceci: ./model 20 msolve system.ms");
 
     struct timespec start, end;
     double elapsed;
@@ -55,6 +55,17 @@ int main(int argc, char **argv)
     slong n = atoi(argv[1]);// Vectors size
     slong k = 2*(n-2)+1;    // Degree of field extension
     slong nvars = 2*(n-2);
+
+    int msolve = 0;
+
+    if(strcmp(argv[2], "msolve") == 0)
+        msolve = 1;
+    else if(strcmp(argv[2], "hpXbred") == 0)
+        msolve = 0;
+    else
+        errx(1, "deuxième paramètre non reconnu, soit msolve soit hpXbred");
+
+    char *file_name = argv[3];
 
     printf("q = %ld\nn = %ld\nk = %ld\nnvars = %ld\n", q, n, k, nvars);
 
@@ -113,13 +124,13 @@ int main(int argc, char **argv)
 
     create_poly_system(g, &system, mpoly_ring, system_mpoly_ring);
 
-    printf("-------Writing the system in system.txt\n");
+    printf("-------Writing the system in %s\n", file_name);
 
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);
-    fprint_system(system, (const char**)monomials, system_mpoly_ring, "system.in", nvars, k+nvars);
+    fprint_system(system, (const char**)monomials, system_mpoly_ring, file_name, nvars, k+nvars, msolve);
     clear_monomials_str(monomials, n-2);
-    clear_system(&system, system_mpoly_ring, k);
+    clear_system(&system, system_mpoly_ring, k+nvars);
  
  
     // Test the keys by evaluating g on x and y

@@ -24,7 +24,7 @@ static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, fq_nmod_mpo
     unsigned long *exp = (unsigned long*)calloc(fq_nmod_mpoly_ctx_nvars(mpoly_ring), sizeof(unsigned long));
     fq_nmod_mpoly_get_term_exp_ui(exp, m, 0, mpoly_ring);
 
-    #pragma omp parallel for num_threads(8) schedule(dynamic)
+    //#pragma omp parallel for num_threads(8) schedule(dynamic)
     for(slong j = 0; j < degree; j++)
     {
         coeff = nmod_poly_get_coeff_ui(t, j);
@@ -109,7 +109,7 @@ void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slon
     flint_free(*system);
 }
 
-void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong nvars, slong k)
+void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong nvars, slong k, int msolve)
 {
     FILE *f = fopen(fn, "w");
     if (!f) {
@@ -123,13 +123,18 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
     }
     fprintf(f, "%s\n", x[nvars-1]);
 
+    if(msolve == 1)
+        fprintf(f, "2\n");
+
     fclose(f);
 
     slong nnz = 0;
 
+    if(msolve == 0)
+        k = k - nvars;
+
     for(slong i = 0; i < k-1; i++)
     {
-        printf("i: %ld\n", i);
         f = fopen(fn, "a");
         if (!f) {
             perror("Error while opening the file\n");
@@ -143,8 +148,11 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
 
         nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
 
-        fprintf(f, "\n");
+        if(msolve == 1)
+            fprintf(f, ",");
         
+        fprintf(f, "\n");
+
         fclose(f);
     }
     f = fopen(fn, "a");
