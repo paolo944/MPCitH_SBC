@@ -6,3 +6,4 @@ system.sobj
 *.o
 *.sage.py
 *.ms
+*.in
