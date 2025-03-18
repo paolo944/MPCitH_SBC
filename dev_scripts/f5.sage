@@ -1,68 +1,133 @@
-def mac_sparse_dict(list_poly, monom):
-    r"""
-    Build the Macaulay matrix for the polynomials of degree d in list_poly. It is represented as a couple of a matrix and the list of the signatures of its rows, assuming compatibility.
-    The matrix is sparse.
- 
-    INPUT:
-    - ``list_poly`` -- a list of degree d polynomials
-    - ``monom`` -- the list of the monomials of degree d, ordered decreasingly
-    OUTPUT:
-    The Macaulay matrix defined by list_poly
-    EXAMPLES::
-        sage: S.<x,y,z>=QQ[]
-        sage: from sage.rings.polynomial.padics.F5Trop_doctest import Make_Macaulay_Matrix_sparse_dict
-        sage: list_poly = [[0,1,x**2+y**2], [1,1,x*y], [2,1,y*z], [3,1,z**2]]
-        sage: Mac = Make_Macaulay_Matrix_sparse_dict(list_poly,[x**2, x*y, y**2, x*z, y*z, z**2])
-        sage: Mac[0]
-        [1 0 1 0 0 0]
-        [0 1 0 0 0 0]
-        [0 0 0 0 1 0]
-        [0 0 0 0 0 1]
-        sage: Mac[1]
-        [[0, 1], [1, 1], [2, 1], [3, 1]]
-        
-    """
+class SignedMatrix:
+    # Matrix together with hashmap associating singature (index) to each row - has special rref function that respects signatures.
+    def __init__(self, mat, sgn, d, parent):
+        self.mat = mat
+        self.signature = sgn
+        self.d = d
+        self.parent = parent
 
-    R = list_poly[0][2].parent()
-    d = list_poly[0][2].degree()
-    l = len(monom)
+    def LT(self):
+        # returns the leading terms of the (polynomials represented by) rows of self.mat
+        monomials = self.monomials()
+        leading_terms = []
+        for row in self.mat.rows():
+            for i in range(len(row)):
+                if row[i] != 0:
+                    leading_terms.append(monomials[i]*row[i])
+                    break
+        return set(leading_terms)
 
-    dict_monom = {monom[aa].exponents()[0]:aa for aa in range(l)}
- 
- 
-    nrows = len(list_poly)
- 
-    listsign = []
-    Mac = MatrixSpace(R.base_ring(),nrows,l,sparse=True)(0)
-    for u in range(nrows):
-        fuple=list_poly[u]
-        listsign.append([fuple[0],fuple[1]])
-        f = fuple[2]
-        list = f.exponents()
-        for mon in list:
-            if dict_monom.has_key(mon):
-                j = dict_monom[mon]
-                Mac[u,j] = f.monomial_coefficient(R({mon:1}))
-    Mac = [Mac, listsign]
-    return Mac
+    def monomials(self):
+        # returns monomials of degree self.d in a list, sorted in decreasing order
+        R = self.parent
+        monomials = R.monomials_of_degree(self.d)
+        monomials.sort(reverse=True)
+        return monomials
 
-def echelon(M):
-    n = A.nrows()
+    def rows(self):
+        # return set of (polynomials represented by) rows of self.mat
+        monomials = self.monomials()
+        r = []
+        for row in self.mat.rows():
+            polynomial = 0
+            for j in range(len(row)):
+                polynomial += row[j]*monomials[j]
+            r.append(polynomial)
+        return r 
 
-    for i in range(n):
-        for j in range(i+1, n):
-            if A[i, i] != 0:
-                factor = A[j, i] / A[i, i]
-                A.set_row(j, A.row(j) - factor * A.row(i))
+    def add_row(self, f, index):
+        # returns a new matrix which is self with a row added corresponding to polynomial f with signature index
+        row = [f.monomial_coefficient(mon) for mon in self.monomials()]
+        copy_mat = copy(self.mat)
+        copy_signature = copy(self.signature)
+        copy_mat = matrix(copy_mat.rows()+[row])
+        copy_signature[copy_mat.nrows()-1] = index
+        return SignedMatrix(copy_mat, copy_signature, self.d, self.parent)
 
-def f5(F, D):
-    R = F[0].parent()
-    m = len(F)
-    l = 
-    for d in range(2, D+1):
-        Mac = MatrixSpace(R,0,,sparse=True)(0)
+    # use position over term ordering
+    def row_echelon_form_by_position(self):
+        # returns a pair (M, n) where M is a new signed matrix which is the row-reduction of self via a sequence of
+        # elementary row operations
+        # keep track of number of operations
+        num_operations = 0
+        copy_mat = copy(self.mat)
+        eliminated = True
+        first_reduction = True
+        # keep track of reductions
+        rdxn = dict()
+        for i in range(len(copy_mat.rows())):
+            rdxn[i] = []
+        while eliminated:
+            eliminated = False
+            for i, row in enumerate(copy_mat.rows()):
+                for j in range(len(row)):
+                    if row[j] != 0:
+                        # j is the leading term of this row, so use it to kill everything with higher signature
+                        for new_i, new_row in enumerate(copy_mat.rows()):
+                            if new_row[j] != 0 and self.signature[i] < self.signature[new_i]:
+                                # we can reduce
+                                lam = -(new_row[j]/row[j])
+                                copy_mat.add_multiple_of_row(new_i, i, lam)
+                                eliminated = True
+                                if first_reduction: # only count top-reductions
+                                    num_operations += len(new_row)
+                                rdxn[new_i].append((i,lam))
+                        break
+            first_reduction = False # stop counting arithmetic operations
 
+        for i, row in enumerate(copy_mat.rows()):
+            for j in range(len(row)):
+                if row[j] != 0:
+                    # j is the coefficient of the leading term of this row, so divide this row by it
+                    copy_mat.rescale_row(i,1/row[j])
+                    break
+
+        return (SignedMatrix(copy_mat, self.signature, self.d, self.parent), num_operations, rdxn)
+
+def F5(F, D):
+    # F=(f_1,...,f_m) is a set of polynomials with degere d_1 <= d_2 <= ... <= d_m
+    # D is maximal degree
+    # returns the set of elements of degree at most D of reduced Grobner bases of (f_1,...,f_i) for each i
+    M_red = [SignedMatrix(matrix(GF(2)), dict(), 2, F[0].parent()), SignedMatrix(matrix(GF(2)), dict(), 3, F[0].parent())] # initialize reduced Macaulay matrices
+    variables = list(F[0].parent().gens())
+    variables.sort(reverse=True)
+    for d in range(F[0].degree(),D+1):
+        M = SignedMatrix(matrix(GF(2)), dict(), d, F[0].parent())
+        for i in range(len(F)):
+            if d < F[i].degree(): continue
+            elif d == F[i].degree(): # Case 1: the degree of f_i is exactly d
+                M = M.add_row(F[i], (i, 1))
+            else: # Case 2: the degree of f_i is less than d
+                Crit = M_red[2-F[i].degree()].LT() # build F_5 criterion list
+                assert(M_red[1].mat.nrows() == len(M_red[1].signature))
+                for j in range(M_red[1].mat.nrows()):
+                    if M_red[1].signature[j][0] == i:
+                        _,e = M_red[1].signature[j]
+                        f = M_red[1].rows()[j]
+                        if e == 1:
+                            largest_var_in_e = 0
+                        else:
+                            largest_var_in_e = variables.index(e.variables()[-1]) # select which row to use to build new row
+                        for k in range(largest_var_in_e,len(variables)):
+                            if e*variables[k] not in Crit: # avoid signatures which F_5 criterion tells us are useless
+                                M = M.add_row(variables[k]*f, (i,e*variables[k]))
+        # reduce Macaulay matrix
+        M_red[0] = copy(M_red[1])
+        M_red[1], _, _ = M.row_echelon_form_by_position()
+        print(f"computed M_tilde for d={d}")
+    return (M.mat, M.signature, M_red[1])
 
 
 system = load("system.sobj")
-f5(system, 4)
+
+system = sorted(system, key=lambda p: p.degree())
+
+Mac, sig, Mac_red = F5(system, 4)
+
+lignes_a_zero = 0
+
+for i in range(Mac_red.mat.rows()):
+    if i.is_zero():
+        lignes_a_zero += 1
+
+print(f"nombres de réductions à 0: {lignes}")
