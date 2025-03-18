@@ -48,15 +48,8 @@ class SignedMatrix:
     def row_echelon_form_by_position(self):
         # returns a pair (M, n) where M is a new signed matrix which is the row-reduction of self via a sequence of
         # elementary row operations
-        # keep track of number of operations
-        num_operations = 0
         copy_mat = copy(self.mat)
         eliminated = True
-        first_reduction = True
-        # keep track of reductions
-        rdxn = dict()
-        for i in range(len(copy_mat.rows())):
-            rdxn[i] = []
         while eliminated:
             eliminated = False
             for i, row in enumerate(copy_mat.rows()):
@@ -69,20 +62,8 @@ class SignedMatrix:
                                 lam = -(new_row[j]/row[j])
                                 copy_mat.add_multiple_of_row(new_i, i, lam)
                                 eliminated = True
-                                if first_reduction: # only count top-reductions
-                                    num_operations += len(new_row)
-                                rdxn[new_i].append((i,lam))
                         break
-            first_reduction = False # stop counting arithmetic operations
-
-        for i, row in enumerate(copy_mat.rows()):
-            for j in range(len(row)):
-                if row[j] != 0:
-                    # j is the coefficient of the leading term of this row, so divide this row by it
-                    copy_mat.rescale_row(i,1/row[j])
-                    break
-
-        return (SignedMatrix(copy_mat, self.signature, self.d, self.parent), num_operations, rdxn)
+        return SignedMatrix(copy_mat, self.signature, self.d, self.parent)
 
 def F5(F, D):
     # F=(f_1,...,f_m) is a set of polynomials with degere d_1 <= d_2 <= ... <= d_m
@@ -110,10 +91,12 @@ def F5(F, D):
                             largest_var_in_e = variables.index(e.variables()[-1]) # select which row to use to build new row
                         for k in range(largest_var_in_e,len(variables)):
                             if e*variables[k] not in Crit: # avoid signatures which F_5 criterion tells us are useless
+                                print("ici que je suis lent ?")
                                 M = M.add_row(variables[k]*f, (i,e*variables[k]))
         # reduce Macaulay matrix
+        print("computing reducation of Mac")
         M_red[0] = copy(M_red[1])
-        M_red[1], _, _ = M.row_echelon_form_by_position()
+        M_red[1] = M.row_echelon_form_by_position()
         print(f"computed M_tilde for d={d}")
     return (M.mat, M.signature, M_red[1])
 
@@ -126,8 +109,8 @@ Mac, sig, Mac_red = F5(system, 4)
 
 lignes_a_zero = 0
 
-for i in range(Mac_red.mat.rows()):
+for i in Mac_red.mat.rows():
     if i.is_zero():
         lignes_a_zero += 1
 
-print(f"nombres de réductions à 0: {lignes}")
+print(f"nombres de réductions à 0: {lignes_a_zero} / {Mac_red.mat.nrows()}")
