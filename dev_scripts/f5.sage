@@ -59,8 +59,7 @@ class SignedMatrix:
                         for new_i, new_row in enumerate(copy_mat.rows()):
                             if new_row[j] != 0 and self.signature[i] < self.signature[new_i]:
                                 # we can reduce
-                                lam = -(new_row[j]/row[j])
-                                copy_mat.add_multiple_of_row(new_i, i, lam)
+                                copy_mat.add_multiple_of_row(new_i, i, 1)
                                 eliminated = True
                         break
         return SignedMatrix(copy_mat, self.signature, self.d, self.parent)
@@ -91,7 +90,6 @@ def F5(F, D):
                             largest_var_in_e = variables.index(e.variables()[-1]) # select which row to use to build new row
                         for k in range(largest_var_in_e,len(variables)):
                             if e*variables[k] not in Crit: # avoid signatures which F_5 criterion tells us are useless
-                                print("ici que je suis lent ?")
                                 M = M.add_row(variables[k]*f, (i,e*variables[k]))
         # reduce Macaulay matrix
         print("computing reducation of Mac")

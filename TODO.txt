@@ -1,0 +1,9 @@
+dev_scripts/f5.sage:
+  -précalculer la taille de la plus grosse matrice Mac
+  pour éviter d'ajouter des lignes ce qui est très couteux
+  pour les pérformances, on arrive pas à aller très loin
+
+essayer de faire la même chose mais en C pour pouvoir
+tester sur des plus grosses tailles
+
+Implémenter le critère pour bilinéaires
