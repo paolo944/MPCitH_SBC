@@ -37,6 +37,7 @@ xy = vector(x[:-2].list() + y[:-2].list())
 q = 2  # Field characteristic
 n = int(sys.argv[1])  # Vectors's size
 k = 2*(n-2)+1 # Degree of field extension
+nvars = k-1
 
 F_q = GF(q)
 F_qn.<t> = GF(q^k, 't')
@@ -76,7 +77,11 @@ basis = [F_qn.gen()**i for i in range(k)]
 
 system = decompose_g(R, g, basis, monomials_str, k)
 
+for i in range(nvars):
+    system.append(monomials[i]**2 - monomials[i])
+
 save(system, "system.sobj")
+print(system)
 
 print("system computed")
 

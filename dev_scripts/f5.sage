@@ -1,3 +1,5 @@
+import time
+
 class SignedMatrix:
     # Matrix together with hashmap associating singature (index) to each row - has special rref function that respects signatures.
     def __init__(self, mat, sgn, d, parent):
@@ -103,12 +105,17 @@ system = load("system.sobj")
 
 system = sorted(system, key=lambda p: p.degree())
 
+start = time.time()
+
 Mac, sig, Mac_red = F5(system, 4)
+
+end = time.time()
 
 lignes_a_zero = 0
 
-for i in Mac_red.mat.rows():
-    if i.is_zero():
-        lignes_a_zero += 1
+for i in range(Mac_red.mat.nrows()):
+    if all(Mac_red.mat[i, j] == 0 for j in range(Mac_red.mat.ncols())):  # Vérifie si toute la ligne est à 0
+        lignes_a_zero += 1         
 
 print(f"nombres de réductions à 0: {lignes_a_zero} / {Mac_red.mat.nrows()}")
+print(f"temps: {end - start}")
