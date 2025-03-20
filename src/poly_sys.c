@@ -68,7 +68,10 @@ void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_
 
     printf("number of monomials: %ld\n", nb_monomials_g);
 
-    slong dixpourcent = nb_monomials_g / 10;
+    slong dixpourcent = 1;
+
+    if(nmod_mpoly_ctx_nvars(system_mpoly_ring) > 10)
+        dixpourcent = nb_monomials_g / 10;
 
     for(slong i = 0; i < nb_monomials_g; i++)
     {
@@ -195,13 +198,12 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         exit(EXIT_FAILURE);
     }
 
-	fprintf(f, "PolynomialSystem := [");
-
 	if(msolve == 2){
+		fprintf(f, "PolynomialSystem := [");
 		for(slong i = 0; i < k-1; i++)
 			fprintf(f, "f%ld,", i+1);
+		fprintf(f, "f%ld];", k);
 	}
-	fprintf(f, "f%ld];", k);
 
 	fclose(f);
 }
