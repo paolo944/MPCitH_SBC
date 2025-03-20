@@ -39,8 +39,10 @@ static inline void clear_monomials_str(char **monomials, slong size)
 
 int main(int argc, char **argv)
 {
-    if(argc != 4)
-        errx(1, "Il manque des paramètres, il faut lancer comme ceci: ./model 20 msolve system.ms");
+    if(argc != 5)
+        errx(1, "Il manque des paramètres, il faut lancer comme ceci: ./model" \
+        " (taille vecteur) (format) (nom fichier de sortie) (1 si " \
+        "inclure equations du corps ou 0 sinon)");
 
     struct timespec start, end;
     double elapsed;
@@ -56,15 +58,22 @@ int main(int argc, char **argv)
     slong k = 2*(n-2)+1;    // Degree of field extension
     slong nvars = 2*(n-2);
 
-    int msolve = 0;
+    int format = 0;
 
-    if(strcmp(argv[2], "msolve") == 0)
-        msolve = 1;
-    else if(strcmp(argv[2], "hpXbred") == 0)
-        msolve = 0;
+    if(strcmp(argv[2], "hpXbred") == 0)
+        format = 0;
+    else if(strcmp(argv[2], "msolve") == 0)
+        format = 1;
+    else if(strcmp(argv[2], "magma") == 0)
+        format = 2;
     else
-        errx(1, "deuxième paramètre non reconnu, soit msolve soit hpXbred");
+        errx(1, "deuxième paramètre non reconnu, soit msolve soit hpXbred, soit magma");
 
+    int field_eq = atoi(argv[4]);
+
+    if(field_eq != 0 && field_eq != 1)
+        errx(1, "le paramètre pour les équations du corps doit être 0 ou 1");
+    
     char *file_name = argv[3];
 
     printf("q = %ld\nn = %ld\nk = %ld\nnvars = %ld\n", q, n, k, nvars);
@@ -128,7 +137,7 @@ int main(int argc, char **argv)
 
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);
-    fprint_system(system, (const char**)monomials, system_mpoly_ring, file_name, nvars, k+nvars, msolve);
+    fprint_system(system, (const char**)monomials, system_mpoly_ring, file_name, nvars, k+nvars, format, field_eq);
     clear_monomials_str(monomials, n-2);
     clear_system(&system, system_mpoly_ring, k+nvars);
  

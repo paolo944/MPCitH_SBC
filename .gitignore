@@ -7,3 +7,4 @@ system.sobj
 *.sage.py
 *.ms
 *.in
+*.magma

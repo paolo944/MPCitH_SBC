@@ -40,11 +40,9 @@ class SignedMatrix:
     def add_row(self, f, index):
         # returns a new matrix which is self with a row added corresponding to polynomial f with signature index
         row = [f.monomial_coefficient(mon) for mon in self.monomials()]
-        copy_mat = copy(self.mat)
-        copy_signature = copy(self.signature)
-        copy_mat = matrix(copy_mat.rows()+[row])
-        copy_signature[copy_mat.nrows()-1] = index
-        return SignedMatrix(copy_mat, copy_signature, self.d, self.parent)
+        self.mat = self.mat.augment(vector(row))
+        self.signature.append(index)
+        return self		
 
     # use position over term ordering
     def row_echelon_form_by_position(self):

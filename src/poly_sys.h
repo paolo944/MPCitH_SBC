@@ -11,6 +11,6 @@ void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_
 
 void clear_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong k);
 
-void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong nvars, slong k, int msolve);
+void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t mpoly_ring, const char *fn, slong nvars, slong k, int msolve, int field_eq);
 
 #endif
