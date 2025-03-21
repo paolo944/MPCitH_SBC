@@ -39,9 +39,9 @@ static inline void clear_monomials_str(char **monomials, slong size)
 
 int main(int argc, char **argv)
 {
-    if(argc != 5)
+    if(argc != 4)
         errx(1, "Il manque des paramètres, il faut lancer comme ceci: ./model" \
-        " (taille vecteur) (format) (nom fichier de sortie) (1 si " \
+        " (taille vecteur) (format) (1 si " \
         "inclure equations du corps ou 0 sinon)");
 
     struct timespec start, end;
@@ -69,12 +69,19 @@ int main(int argc, char **argv)
     else
         errx(1, "deuxième paramètre non reconnu, soit msolve soit hpXbred, soit magma");
 
-    int field_eq = atoi(argv[4]);
+    int field_eq = atoi(argv[3]);
 
     if(field_eq != 0 && field_eq != 1)
         errx(1, "le paramètre pour les équations du corps doit être 0 ou 1");
     
-    char *file_name = argv[3];
+    char file_name[64];
+
+    if(format == 0)
+    	sprintf(file_name, "system/system_bilin_%ld_%ld.in", nvars, k+field_eq*nvars);
+    else if(format == 1)
+    	sprintf(file_name, "system/system_bilin_%ld_%ld.ms", nvars, k+field_eq*nvars);
+    else if(format == 2)
+    	sprintf(file_name, "system/system_bilin_%ld_%ld.maga", nvars, k+field_eq*nvars);
 
     printf("q = %ld\nn = %ld\nk = %ld\nnvars = %ld\n", q, n, k, nvars);
 
@@ -134,6 +141,8 @@ int main(int argc, char **argv)
     create_poly_system(g, &system, mpoly_ring, system_mpoly_ring);
 
     printf("-------Writing the system in %s\n", file_name);
+
+    
 
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);

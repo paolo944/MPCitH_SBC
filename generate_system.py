@@ -3,10 +3,10 @@ import subprocess
 
 formats = ["hpXbred", "msolve", "magma"]
 
-if(len(sys.argv) != 5):
+if(len(sys.argv) != 4):
     print("Il manque des arguments")
     print("Il faut lancer comme ceci:")
-    print("\tpython3 generate_system.py 4 hpXbred system.in 1")
+    print("\tpython3 generate_system.py 4 hpXbred 1")
 
 try:
     n = int(sys.argv[1])
@@ -15,10 +15,9 @@ except ValueError:
     sys.exit(1)
 
 formatting = sys.argv[2]
-out_filename = sys.argv[3]
 
 try:
-    field_eq = int(sys.argv[4])
+    field_eq = int(sys.argv[3])
 except ValueError:
     print("Erreur, le booleen pour inclure ou non les équations du corps doit être un entier")
     sys.exit(1)
@@ -38,20 +37,12 @@ if(field_eq != 0 and field_eq != 1):
 
 launch = ["sage", "scripts/key_init.sage", str(n)]
 
-launch_str = " ".join(launch)
-
-print(f"-------{launch_str}")
-
 result = subprocess.run(launch) 
 
 if result.returncode != 0:
     sys.exit(1)
 
-launch = ["./model", str(n), formatting, f"system/{out_filename}", str(field_eq)]
-
-launch_str = " ".join(launch)
-
-print(f"-------{launch_str}")
+launch = ["./model", str(n), formatting, str(field_eq)]
 
 result = subprocess.run(launch, text=True)
 
