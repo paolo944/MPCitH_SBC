@@ -9,7 +9,6 @@
 #include "flint/fq_nmod_vec.h"
 #include "flint/fq_nmod_mpoly.h"
 #include "flint/nmod_mpoly.h"
-#include "flint/thread_support.h"
 #include "read_fq.h"
 #include "gen_g_poly.h"
 #include "poly_sys.h"
@@ -77,11 +76,11 @@ int main(int argc, char **argv)
     char file_name[64];
 
     if(format == 0)
-    	sprintf(file_name, "system/system_bilin_%ld_%ld.in", nvars, k+field_eq*nvars);
+    	sprintf(file_name, "system/hpXbred/system_bilin_%ld_%ld.in", nvars, k+field_eq*nvars);
     else if(format == 1)
-    	sprintf(file_name, "system/system_bilin_%ld_%ld.ms", nvars, k+field_eq*nvars);
+    	sprintf(file_name, "system/msolve/system_bilin_%ld_%ld.ms", nvars, k+field_eq*nvars);
     else if(format == 2)
-    	sprintf(file_name, "system/system_bilin_%ld_%ld.maga", nvars, k+field_eq*nvars);
+    	sprintf(file_name, "system/magma/system_bilin_%ld_%ld.magma", nvars, k+field_eq*nvars);
 
     printf("q = %ld\nn = %ld\nk = %ld\nnvars = %ld\n", q, n, k, nvars);
 

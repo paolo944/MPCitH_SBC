@@ -7,6 +7,7 @@ if(len(sys.argv) != 4):
     print("Il manque des arguments")
     print("Il faut lancer comme ceci:")
     print("\tpython3 generate_system.py 4 hpXbred 1")
+    sys.exit(1)
 
 try:
     n = int(sys.argv[1])
