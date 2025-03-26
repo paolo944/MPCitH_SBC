@@ -1,7 +1,7 @@
 import sys
 import subprocess
 
-formats = ["hpXbred", "msolve", "magma"]
+formats = ["hpXbred", "msolve", "magma", "sage"]
 
 if(len(sys.argv) != 4):
     print("Il manque des arguments")
@@ -43,8 +43,11 @@ result = subprocess.run(launch)
 if result.returncode != 0:
     sys.exit(1)
 
-launch = ["./model", str(n), formatting, str(field_eq)]
-
+if formatting != "sage":
+    launch = ["./model", str(n), formatting, str(field_eq)]
+else:
+    launch = ["sage", "scripts/modelisation.sage", str(n)]
+    
 result = subprocess.run(launch, text=True)
 
 if result.returncode != 0:

@@ -80,8 +80,7 @@ system = decompose_g(R, g, basis, monomials_str, k)
 for i in range(nvars):
     system.append(monomials[i]**2 - monomials[i])
 
-save(system, "system.sobj")
-print(system)
+save(system, f"system/sage/system_bilin_{nvars}_{k+nvars}.sobj")
 
 print("system computed")
 
