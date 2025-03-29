@@ -1,4 +1,5 @@
 import sys
+import os
 import subprocess
 
 formats = ["hpXbred", "msolve", "magma", "sage"]
@@ -36,6 +37,18 @@ if(field_eq != 0 and field_eq != 1):
     print("Le booleen pour inclure les équations du corps doit être 0 ou 1")
     sys.exit(1)
 
+if not os.path.exists("keys"):
+    os.mkdir("keys")
+    print("Created the directory keys/")
+
+if not os.path.exists("system"):
+    os.mkdir("system")
+    print("Created the directory /system")
+
+if not os.path.exists(f"system/{formatting}"):
+    os.mkdir(f"system/{formatting}")
+    print(f"Created the directory /system/{formatting}")
+    
 launch = ["sage", "scripts/key_init.sage", str(n)]
 
 result = subprocess.run(launch) 

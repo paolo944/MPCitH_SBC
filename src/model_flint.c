@@ -151,7 +151,6 @@ int main(int argc, char **argv)
  
  
     // Test the keys by evaluating g on x and y
-    /*
     fq_nmod_t ev;
     fq_nmod_init(ev, field);
 
@@ -190,7 +189,6 @@ int main(int argc, char **argv)
     flint_free(vals);
 
     fq_nmod_clear(ev, field);
-    */
 
     fq_nmod_mpoly_clear(g, mpoly_ring);
 

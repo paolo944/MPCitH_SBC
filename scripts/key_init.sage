@@ -14,7 +14,7 @@ def save_vector(vector, file_name):
     with open(file_name, "w") as f:
         for v in vector:
             v = v.polynomial()
-            coefficients = [v.coefficient(i) for i in range(v.degree() + 1)] 
+            coefficients = v.coefficients(sparse=False)
             f.write(str(v.degree()+1) + " " + str(characteristic))
             if(len(coefficients) > 0):
                 coeff_list = "  " + " ".join(str(i) for i in coefficients)
