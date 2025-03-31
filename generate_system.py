@@ -66,3 +66,6 @@ result = subprocess.run(launch, text=True)
 if result.returncode != 0:
     print(result.stderr)
     sys.exit(1)
+
+if formatting == "hpXbred" and field_eq == 1:
+    result = subprocess.run(["sed" ,"-i", "s/\\(x[0-9]*\\)\\^2/\\1*\\1/g; s/\\(y[0-9]*\\)\\^2/\\1*\\1/g", f"system/hpXbred/system_bilin_{2*(n-2)}_{4*(n-2) + 1}.in"])

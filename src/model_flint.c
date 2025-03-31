@@ -149,7 +149,6 @@ int main(int argc, char **argv)
     clear_monomials_str(monomials, n-2);
     clear_system(&system, system_mpoly_ring, k+nvars);
  
- 
     // Test the keys by evaluating g on x and y
     fq_nmod_t ev;
     fq_nmod_init(ev, field);
@@ -207,7 +206,7 @@ int main(int argc, char **argv)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-    printf("Time: %.9f secondes\n", elapsed);
+    printf("\nTime: %.9f secondes\n", elapsed);
 
 
     return 0;
