@@ -27,7 +27,17 @@ def decompose_g(R, g, basis, monomials_str, k):
                 system[j] += Rprime(monomials[i])
     return system
 
-start_time = time.time()
+
+if(len(sys.argv) != 3):
+    print("Missing arguments, try:\n\tsage modelisation.sage 4 1")
+
+if(sys.argv[2] == "1"):
+    field_eq_op = True
+elif(sys.argv[2] == "0"):
+    field_eq_op = False
+else:
+    print("The field equations option must be 1 or 0")
+    sys.exit(1)
 
 x = load("keys/x.sobj")
 y = load("keys/y.sobj")
@@ -39,11 +49,17 @@ n = int(sys.argv[1])  # Vectors's size
 k = 2*(n-2)+1 # Degree of field extension
 nvars = k-1
 
+if n < 1:
+    print("the vector's size must be positive")
+    sys.exit(1)
+
 F_q = GF(q)
 F_qn.<t> = GF(q^k, 't')
 
 u = load("keys/u.sobj")
 v = load("keys/v.sobj")
+
+start_time = time.time()
 
 assert len(u) == len(v) == len(x) == len(y), "Sizes do not match"
 
@@ -77,8 +93,9 @@ basis = [F_qn.gen()**i for i in range(k)]
 
 system = decompose_g(R, g, basis, monomials_str, k)
 
-for i in range(nvars):
-    system.append(monomials[i]**2 - monomials[i])
+if(field_eq_op):
+    for i in range(nvars):
+        system.append(monomials[i]**2 - monomials[i])
 
 save(system, f"system/sage/system_bilin_{nvars}_{k+nvars}.sobj")
 

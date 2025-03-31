@@ -37,6 +37,9 @@ This pair of public/private keys are stored in human friendly format and in
 
 The private key is in $(F_2)^n$. The public key is in $(F_{2^{m}})^n$.
 
+Before generating the systems, make sure that the directory system/{format}
+is created.
+
 To generate the system of equations on $F_2$ by Weil descent, you have 2
 options, either use sagemath to have a system written in .sobj format but it's
 very slow for big systems, or use the C compiled code using FLINT to have 1 of
@@ -65,18 +68,18 @@ format. You can choose between the following formats:
 
 It's case sensitive.
 
-The output system will be generated in the directory 
+The output system will be generated in the file:
 /system/{format}/system_bilin_n_m.{format}
 
 Finally, if you only want the final system, you can juste type:
 
 ```console
-python3 generate_system.py {n} {format} {0 or 1}
+$ python3 generate_system.py {n} {format} {0 or 1}
 ```
 
 Where n is the vector size, format is one of the following: 
 [sage, msolve, hpXbred, magma] and 0 or 1 for if you want to include the field's
-equations.
+equations or not.
 
 ## Bug Report:
 
