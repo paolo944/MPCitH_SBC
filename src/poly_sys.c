@@ -9,8 +9,8 @@
 #endif
 
 static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, fq_nmod_mpoly_t m, 
-                    const fq_nmod_ctx_t field, const nmod_mpoly_ctx_t system_mpoly_ring, 
-                    const fq_nmod_mpoly_ctx_t mpoly_ring)
+                                 const fq_nmod_ctx_t field, const nmod_mpoly_ctx_t system_mpoly_ring, 
+                                 const fq_nmod_mpoly_ctx_t mpoly_ring)
 {
     slong degree = fq_nmod_ctx_degree(field);
     ulong p = fq_nmod_ctx_prime(field);
@@ -55,7 +55,7 @@ void init_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong
 }
 
 void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_mpoly_ctx_t mpoly_ring,
-                    const nmod_mpoly_ctx_t system_mpoly_ring)
+                        const nmod_mpoly_ctx_t system_mpoly_ring)
 {
     slong nb_monomials_g;
     fq_nmod_t c;
@@ -120,18 +120,18 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         exit(EXIT_FAILURE);
     }
 
-	if(msolve == 2)
-		fprintf(f, "F := GaloisField(2);\nField<"); 
+    if(msolve == 2)
+        fprintf(f, "F := GaloisField(2);\nField<"); 
 
     for(slong i = 0; i < nvars-1; i++)
     {
         fprintf(f, "%s,", x[i]);
     }
 
-	if(msolve == 2)
-		fprintf(f, "%s> := BooleanPolynomialRing(%ld, \"grevlex\");\n", x[nvars-1], nvars);
-	else
-    	fprintf(f, "%s\n", x[nvars-1]);
+    if(msolve == 2)
+        fprintf(f, "%s> := BooleanPolynomialRing(%ld, \"grevlex\");\n", x[nvars-1], nvars);
+    else
+        fprintf(f, "%s\n", x[nvars-1]);
 
     if(msolve == 1)
         fprintf(f, "2\n");
@@ -156,15 +156,15 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         else
             printf("erreur, polynôme non canonique");
 
-		if(msolve == 2)
-			fprintf(f, "f%ld := ", i+1);
-        
-		nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
-		
+        if(msolve == 2)
+            fprintf(f, "f%ld := ", i+1);
+
+        nmod_mpoly_fprint_pretty(f, system[i], x, mpoly_ring);
+
         if(msolve == 1)
             fprintf(f, ",");
-		else if(msolve == 2)
-			fprintf(f, ";");
+        else if(msolve == 2)
+            fprintf(f, ";");
 
         fprintf(f, "\n");
 
@@ -175,35 +175,35 @@ void fprint_system(nmod_mpoly_t *system, const char **x, const nmod_mpoly_ctx_t 
         perror("Error while opening the file\n");
         exit(EXIT_FAILURE);
     }
-    
+
     if(nmod_mpoly_is_canonical(system[k-1], mpoly_ring))
-            nnz += nmod_mpoly_length(system[k-1], mpoly_ring);
-        else
-            printf("erreur, polynôme non canonique");
+        nnz += nmod_mpoly_length(system[k-1], mpoly_ring);
+    else
+        printf("erreur, polynôme non canonique");
 
 
     if(msolve == 2)
-		fprintf(f, "f%ld := ", k);
+        fprintf(f, "f%ld := ", k);
     nmod_mpoly_fprint_pretty(f, system[k-1], x, mpoly_ring);
     if(msolve == 2)
-		fprintf(f, ";\n");
+        fprintf(f, ";\n");
 
     printf("nnz: %ld\n", nnz);
 
     fclose(f);
 
-	f = fopen(fn, "a");
+    f = fopen(fn, "a");
     if (!f) {
         perror("Error while opening the file\n");
         exit(EXIT_FAILURE);
     }
 
-	if(msolve == 2){
-		fprintf(f, "PolynomialSystem := [");
-		for(slong i = 0; i < k-1; i++)
-			fprintf(f, "f%ld,", i+1);
-		fprintf(f, "f%ld];", k);
-	}
+    if(msolve == 2){
+        fprintf(f, "PolynomialSystem := [");
+        for(slong i = 0; i < k-1; i++)
+            fprintf(f, "f%ld,", i+1);
+        fprintf(f, "f%ld];", k);
+    }
 
-	fclose(f);
+    fclose(f);
 }
