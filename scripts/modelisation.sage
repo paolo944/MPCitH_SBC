@@ -94,13 +94,17 @@ basis = [F_qn.gen()**i for i in range(k)]
 system = decompose_g(R, g, basis, monomials_str, k)
 
 if(field_eq_op):
+    print("ajout des équations du corps")
     for i in range(nvars):
         system.append(monomials[i]**2 - monomials[i])
 
-save(system, f"system/sage/system_bilin_{nvars}_{k+nvars}.sobj")
+t = k
+if(field_eq_op):
+    t += nvars
 
+file = f"system/sage/system_bilin_{nvars}_{t}.sobj"
+save(system, file)
 print("system computed")
-
 end_time = time.time()
-
 print(f"Temps d'exécution : {end_time - start_time} secondes")
+print(f"system written in {file}")

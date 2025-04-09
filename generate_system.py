@@ -59,7 +59,7 @@ if result.returncode != 0:
 if formatting != "sage":
     launch = ["./model", str(n), formatting, str(field_eq)]
 else:
-    launch = ["sage", "scripts/modelisation.sage", str(n)]
+    launch = ["sage", "scripts/modelisation.sage", str(n), str(field_eq)]
     
 result = subprocess.run(launch, text=True)
 
