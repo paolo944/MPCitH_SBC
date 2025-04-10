@@ -3,37 +3,34 @@ try:
 except:
     print("Erreur pendant le load")
     sys.exit(1)
-
 system2 = []
-
-print(system)
-
+#print(system)
 for i in system:
     try:
         system2.append(i.homogeneous_components()[2])
     except KeyError:
         system2.append(i.homogeneous_components()[1])
-
-print(system2)
-
+#print(system2)
 I = ideal(system2)
 
-field = GF(2)
-ring.<t> =  field[]
+field = ZZ
+poly_ring.<t> = PolynomialRing(field)
+series_ring.<z> = PowerSeriesRing(field)
 
 n = system[0].parent().ngens()
 
 denom = 1
 for i in system2:
-    print(i.degree())
     denom *= (1+t**i.degree())
 
-num = (1+t)**n
-q, r = num.quo_rem(denom)
+denom = series_ring(denom)
+num = series_ring((1+t)**n)
+res = num * denom.inverse_of_unit()
+print(f"Generating series of the sequence: {res}")
 
-print(f"test de vérification: {q*denom + r == num}")
-print(f"q: {q}")
-print(f"r: {r}")
-print(f"The hilbert series of I is: {I.hilbert_series()}")
+hilbert_series = I.hilbert_series()
+hilbert_series_denom = hilbert_series.denominator()
+hilbert_series_num = hilbert_series.numerator()
+res2 = series_ring(hilbert_series_num) * series_ring(hilbert_series_denom).inverse_of_unit()
+print(f"The hilbert series of I is: {res2}")
 print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
-print(f"Hilbert polynomial of I: {I.hilbert_polynomial()}")
