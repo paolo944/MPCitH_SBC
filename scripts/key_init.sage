@@ -22,69 +22,78 @@ def save_vector(vector, file_name):
             else:
                 f.write("\n")
 
-q = 2 # Field characteristic
-n = int(sys.argv[1])  # Vectors's size
-k = 2*(n-2)+1 # Degree of field extension
+def generate_nsbc_keys(n, verbose):
+    if verbose:
+        print(f"generating keys for n={n}")
 
-F_q = GF(q)
-F_qn = GF(q^k, 't')
+    q = 2 # Field characteristic
+    k = 2*(n-2)+1 # Degree of field extension
 
-while(True):
-    x_prime = [F_q.random_element() for _ in range(n-2)]
-    y_prime = [F_q.random_element() for _ in range(n-2)]
+    F_q = GF(q)
+    F_qn = GF(q^k, 't')
 
-    x = x_prime + [1, 0]
-    x = vector(x)
+    while(True):
+        x_prime = [F_q.random_element() for _ in range(n-2)]
+        y_prime = [F_q.random_element() for _ in range(n-2)]
 
-    y = y_prime + [0, 1]
-    y = vector(y)
+        x = x_prime + [1, 0]
+        x = vector(x)
 
-    u = [F_qn.random_element() for _ in range(n)]
-    v = [F_qn.random_element() for _ in range(n-1)]
+        y = y_prime + [0, 1]
+        y = vector(y)
 
-    u = vector(u)
+        u = [F_qn.random_element() for _ in range(n)]
+        v = [F_qn.random_element() for _ in range(n-1)]
 
-    u_y = u.dot_product(y)
-    u_x = u.dot_product(x)
+        u = vector(u)
 
-    v_x = 0
-    v_y = 0
+        u_y = u.dot_product(y)
+        u_x = u.dot_product(x)
 
-    for i in range(0, n-1):
-        v_x += v[i]*x[i]
-        v_y += v[i]*y[i]
+        v_x = 0
+        v_y = 0
 
-    denominator = y[n-1] * u_x
+        for i in range(0, n-1):
+            v_x += v[i]*x[i]
+            v_y += v[i]*y[i]
 
-    if(denominator == 0):
-        continue
+        denominator = y[n-1] * u_x
 
-    v_n = (u_y*v_x - u_x*v_y) / denominator
+        if(denominator == 0):
+            continue
 
-    v.append(v_n)
-    v = vector(v)
-    
-    # Check if u and v are linearly dependant
-    if(linear_dependance(u, v)):
-        continue
+        v_n = (u_y*v_x - u_x*v_y) / denominator
 
-    # If all is good
-    break
+        v.append(v_n)
+        v = vector(v)
+        
+        # Check if u and v are linearly dependant
+        if(linear_dependance(u, v)):
+            continue
 
-# Test the instance
-v_x = v.dot_product(x)
-v_y = v.dot_product(y)
+        # If all is good
+        break
 
-assert u_x * v_y == u_y * v_x, "NSBC not right"
+    # Test the instance
+    v_x = v.dot_product(x)
+    v_y = v.dot_product(y)
 
-save_vector(u, "keys/u.pub")
-save_vector(v, "keys/v.pub")
-save_vector(x, "keys/x")
-save_vector(y, "keys/y")
+    assert u_x * v_y == u_y * v_x, "NSBC not right"
 
-save(u, "keys/u.sobj")
-save(v, "keys/v.sobj")
-save(x, "keys/x.sobj")
-save(y, "keys/y.sobj")
+    save_vector(u, "keys/u.pub")
+    save_vector(v, "keys/v.pub")
+    save_vector(x, "keys/x")
+    save_vector(y, "keys/y")
 
-print("generated and saved private and public keys")
+    save(u, "keys/u.sobj")
+    save(v, "keys/v.sobj")
+    save(x, "keys/x.sobj")
+    save(y, "keys/y.sobj")
+
+    if verbose:
+        print("generated and saved private and public keys")
+
+#if __name__ == '__main__':
+#    import sys
+#    n = int(sys.argv[1])
+#    generate_nsbc_keys(n)

@@ -28,83 +28,94 @@ def decompose_g(R, g, basis, monomials_str, k):
     return system
 
 
-if(len(sys.argv) != 3):
-    print("Missing arguments, try:\n\tsage modelisation.sage 4 1")
+def generate_system(n, field_eq_op, verbose):
+    if verbose:
+        print(f"generating system for n={n}")
 
-if(sys.argv[2] == "1"):
-    field_eq_op = True
-elif(sys.argv[2] == "0"):
-    field_eq_op = False
-else:
-    print("The field equations option must be 1 or 0")
-    sys.exit(1)
+    x = load("keys/x.sobj")
+    y = load("keys/y.sobj")
 
-x = load("keys/x.sobj")
-y = load("keys/y.sobj")
+    xy = vector(x[:-2].list() + y[:-2].list())
 
-xy = vector(x[:-2].list() + y[:-2].list())
+    q = 2  # Field characteristic
+    k = 2*(n-2)+1 # Degree of field extension
+    nvars = k-1
 
-q = 2  # Field characteristic
-n = int(sys.argv[1])  # Vectors's size
-k = 2*(n-2)+1 # Degree of field extension
-nvars = k-1
+    if n < 1:
+        print("the vector's size must be positive")
+        sys.exit(1)
 
-if n < 1:
-    print("the vector's size must be positive")
-    sys.exit(1)
+    F_q = GF(q)
+    F_qn.<t> = GF(q^k, 't')
 
-F_q = GF(q)
-F_qn.<t> = GF(q^k, 't')
+    u = load("keys/u.sobj")
+    v = load("keys/v.sobj")
 
-u = load("keys/u.sobj")
-v = load("keys/v.sobj")
+    if verbose:
+        start_time = time.time()
 
-start_time = time.time()
+    assert len(u) == len(v) == len(x) == len(y), "Sizes do not match"
 
-assert len(u) == len(v) == len(x) == len(y), "Sizes do not match"
+    assert u.dot_product(x) * v.dot_product(y) == u.dot_product(y) * v.dot_product(x), "NSBC not right"
 
-assert u.dot_product(x) * v.dot_product(y) == u.dot_product(y) * v.dot_product(x), "NSBC not right"
+    if verbose:
+        print("assert ok")
 
-print("assert ok")
+    monomials_str = ['x'+str(i) for i in range(1, n-1)] + ['y'+str(i) for i in range(1, n-1)]
 
-monomials_str = ['x'+str(i) for i in range(1, n-1)] + ['y'+str(i) for i in range(1, n-1)]
+    # Créer l'anneau de polynômes en x1, x2,..., xn-2 et y1, y2,..., yn-2
+    R = PolynomialRing(F_qn, monomials_str)
 
-# Créer l'anneau de polynômes en x1, x2,..., xn-2 et y1, y2,..., yn-2
-R = PolynomialRing(F_qn, monomials_str)
+    # Convertir les monomiaux en polynômes dans R
+    monomials = [R(monom) for monom in monomials_str]
+    
+    # Construire g
+    g = construct_g(R, monomials, u, v, n)
 
-# Convertir les monomiaux en polynômes dans R
-monomials = [R(monom) for monom in monomials_str]
+    if verbose:
+        print("computed g")
 
-# Construire g
-g = construct_g(R, monomials, u, v, n)
+    substitutions = {monomials[i]: xy[i] for i in range(k-1)}
 
-print("computed g")
+    evaluation = g.subs(substitutions)
+    if verbose:
+        print(f"g(x, y) == {evaluation}")
 
-substitutions = {monomials[i]: xy[i] for i in range(k-1)}
+    coefficients = []
 
-evaluation = g.subs(substitutions)
-print(f"g(x, y) == {evaluation}")
+    #quotient, reminder = g.quo_rem(t**2)
 
-coefficients = []
+    basis = [F_qn.gen()**i for i in range(k)]
 
-#quotient, reminder = g.quo_rem(t**2)
+    system = decompose_g(R, g, basis, monomials_str, k)
 
-basis = [F_qn.gen()**i for i in range(k)]
+    if(field_eq_op):
+        if verbose:
+            print("ajout des équations du corps")
+        for i in range(nvars):
+            system.append(monomials[i]**2 - monomials[i])
 
-system = decompose_g(R, g, basis, monomials_str, k)
+    t = k
+    if(field_eq_op):
+        t += nvars
 
-if(field_eq_op):
-    print("ajout des équations du corps")
-    for i in range(nvars):
-        system.append(monomials[i]**2 - monomials[i])
+    file = f"system/sage/system_bilin_{nvars}_{t}.sobj"
+    save(system, file)
+    if verbose:
+        print("system computed")
+        end_time = time.time()
+        print(f"Temps d'exécution : {end_time - start_time} secondes")
+        print(f"system written in {file}")
 
-t = k
-if(field_eq_op):
-    t += nvars
+    return (system, file)
 
-file = f"system/sage/system_bilin_{nvars}_{t}.sobj"
-save(system, file)
-print("system computed")
-end_time = time.time()
-print(f"Temps d'exécution : {end_time - start_time} secondes")
-print(f"system written in {file}")
+
+#if __name__ == '__main__':
+#    import sys
+#    if len(sys.argv) != 3:
+#        print("Usage: sage modelisation.py <n> <field_eq (0 or 1)>")
+#        sys.exit(1)
+#
+#    n = int(sys.argv[1])
+#    field_eq = bool(int(sys.argv[2]))
+#    generate_system(n, field_eq)

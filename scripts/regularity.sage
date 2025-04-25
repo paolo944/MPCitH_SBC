@@ -20,7 +20,26 @@ def doit(n, m):
         f = random_quad_poly(R) 
         f += f(*x) 
         I.append(f)
+
+    monomials = R.gens()
+
+    for i in range(n):
+        I.append(monomials[i]**2 - monomials[i])
     return I
+
+def Md(n):
+    """
+    Retourne la série qui représente le nombre de mônomes en degré D
+    """
+    poly_ring.<z> = PolynomialRing(QQ)
+    return (1 + z)**n
+
+def hilbert_function(n, mpol, deg):
+    """
+    En supossant que la suite est semi-regulière
+    """
+    if(degree < 2 or mpol == 0):
+        return binomial(nvar,deg)
 
 if(sys.argv[1] == "random"):
     try:
@@ -50,13 +69,30 @@ series_ring.<z> = PowerSeriesRing(field)
 
 n = system[0].parent().ngens()
 
+#magma_str = "F := GaloisField(2);\n"
+#variables = ', '.join(f'x{i+1}' for i in range(n/2))
+#variables += ', ' + ', '.join(f'y{i+1}' for i in range(n/2))
+#magma_str += f"Field<{variables}> := PolynomialRing(F, {n}, \"grevlex\");\n"
+#
+#for idx, f in enumerate(system2, 1):
+#    magma_str += f"f{idx} := {f};\n"
+#
+#f_list = ', '.join(f"f{i+1}" for i in range(len(system2)))
+#magma_str += f"PolynomialSystem := [{f_list}];\n"
+#
+#print(sys.argv[-1])
+#
+## Sauvegarde dans un fichier texte
+#with open(sys.argv[-1], "w") as f:
+#    f.write(magma_str)
+
 denom = 1
 for i in system2:
-    denom *= (1-t**i.degree())
+    denom *= (1+t**i.degree())
 
 denom = series_ring(denom)
-num = series_ring((1-t)**n)
-res = num.inverse_of_unit() * denom
+num = series_ring((1+t)**n)
+res = num * denom.inverse_of_unit()
 print(f"Generating series of the sequence: {res}")
 
 hilbert_series = I.hilbert_series()
