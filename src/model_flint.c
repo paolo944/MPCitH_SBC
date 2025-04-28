@@ -161,6 +161,15 @@ int main(int argc, char **argv)
         printf("\n");
     }
 
+    for (slong i = 0; i < nvars; i++)
+    {
+        fq_nmod_clear(vals[i], field);
+        flint_free(vals[i]);
+    }
+    flint_free(vals);
+
+    fq_nmod_clear(ev, field);
+
     // char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     // gen_monomials_str(monomials, n-2);
     // fq_nmod_mpoly_print_pretty(g, (const char**)monomials, mpoly_ring);
@@ -189,15 +198,6 @@ int main(int argc, char **argv)
     fprint_system(system, (const char**)monomials, system_mpoly_ring, file_name, nvars, k+nvars, format, field_eq);
     clear_monomials_str(monomials, n-2);
     clear_system(&system, system_mpoly_ring, k+nvars);
-   
-    for (slong i = 0; i < nvars; i++)
-    {
-        fq_nmod_clear(vals[i], field);
-        flint_free(vals[i]);
-    }
-    flint_free(vals);
-
-    fq_nmod_clear(ev, field);
 
     fq_nmod_mpoly_clear(g, mpoly_ring);
 
