@@ -6,3 +6,5 @@ system.sobj
 
 *.o
 *.sage.py
+
+analysis*.txt

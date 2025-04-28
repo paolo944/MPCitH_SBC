@@ -110,12 +110,12 @@ def generate_system(n, field_eq_op, verbose):
     return (system, file)
 
 
-#if __name__ == '__main__':
-#    import sys
-#    if len(sys.argv) != 3:
-#        print("Usage: sage modelisation.py <n> <field_eq (0 or 1)>")
-#        sys.exit(1)
-#
-#    n = int(sys.argv[1])
-#    field_eq = bool(int(sys.argv[2]))
-#    generate_system(n, field_eq)
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) != 3:
+        print("Usage: sage modelisation.py <n> <field_eq (0 or 1)>")
+        sys.exit(1)
+
+    n = int(sys.argv[1])
+    field_eq = bool(int(sys.argv[2]))
+    generate_system(n, field_eq, False)

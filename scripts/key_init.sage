@@ -93,7 +93,7 @@ def generate_nsbc_keys(n, verbose):
     if verbose:
         print("generated and saved private and public keys")
 
-#if __name__ == '__main__':
-#    import sys
-#    n = int(sys.argv[1])
-#    generate_nsbc_keys(n)
+if __name__ == '__main__':
+    import sys
+    n = int(sys.argv[1])
+    generate_nsbc_keys(n, False)
