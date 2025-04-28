@@ -4,10 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, fq_nmod_mpoly_t m, 
                                  const fq_nmod_ctx_t field, const nmod_mpoly_ctx_t system_mpoly_ring, 
                                  const fq_nmod_mpoly_ctx_t mpoly_ring)
@@ -29,7 +25,6 @@ static inline void append_system(nmod_mpoly_t **system, fq_nmod_t c, fq_nmod_mpo
 
     fq_nmod_mpoly_get_term_exp_ui(exp, m, 0, mpoly_ring);
 
-    //#pragma omp parallel for num_threads(8) schedule(dynamic)
     for(slong j = 0; j < degree; j++)
     {
         coeff = nmod_poly_get_coeff_ui(t, j);
