@@ -1,5 +1,42 @@
 import time
 
+def read_privkey(f):
+    vec = []
+    B = GF(2)
+    
+    with open(f, 'r') as f:
+        for ligne in f:
+            elements = ligne.split()
+            taille = int(elements[0])
+            caracteristique = int(elements[1])
+            if caracteristique != 2:
+                raise ValueError(f"Caractéristique attendue 2, mais trouvée {caracteristique} dans la ligne : {ligne}")
+            
+            coefficients = [int(c) for c in elements[2:]]
+            elem = sum([coefficients[i] for i in range(len(coefficients))])
+            vec.append(B(elem))
+    
+    return vector(vec)
+
+def read_pubkey(f):
+    polynomes = []
+    B.<t> = GF(2^257, modulus=x^257 + x^12 + 1)
+    
+    with open(f, 'r') as f:
+        for ligne in f:
+            elements = ligne.split()
+            taille = int(elements[0])
+            caracteristique = int(elements[1])
+            if caracteristique != 2:
+                raise ValueError(f"Caractéristique attendue 2, mais trouvée {caracteristique} dans la ligne : {ligne}")
+            
+            coefficients = [int(c) for c in elements[2:]]
+            poly = sum([coefficients[i] * t^i for i in range(len(coefficients))])
+            polynomes.append(B(poly))
+    
+    return (vector(polynomes), B)
+
+
 def construct_g(R, monomials, u, v, n):
     ux = R(u[n-2])
     vx = R(v[n-2])
@@ -7,10 +44,10 @@ def construct_g(R, monomials, u, v, n):
     vy = R(v[n-1])
 
     for i in range(n-2):
-        ux += u[i]*monomials[i]
-        vx += v[i]*monomials[i]
-        uy += u[i]*monomials[i+n-2]
-        vy += v[i]*monomials[i+n-2]
+        ux += R(u[i])*monomials[i]
+        vx += R(v[i])*monomials[i]
+        uy += R(u[i])*monomials[i+n-2]
+        vy += R(v[i])*monomials[i+n-2]
 
     return ux*vy - uy*vx
 
@@ -27,13 +64,28 @@ def decompose_g(R, g, basis, monomials_str, k):
                 system[j] += Rprime(monomials[i])
     return system
 
-
 def generate_system(n, field_eq_op, verbose):
+    if n < 1:
+        print("the vector's size must be positive")
+        sys.exit(1)
+    
     if verbose:
         print(f"generating system for n={n}")
 
     x = load("keys/x.sobj")
     y = load("keys/y.sobj")
+    #x = read_privkey("keys/x")
+    #y = read_privkey("keys/y")
+
+    u = load("keys/u.sobj")
+    v = load("keys/v.sobj")
+    #u, F_qn = read_pubkey("keys/u.pub")
+    #v, _ = read_pubkey("keys/v.pub")
+
+    assert x[n-1] == 0 and x[n-2] == 1 and y[n-1] == 1 and y[n-2] == 0, "NSBC not right"
+    assert len(u) == len(v) == len(x) == len(y), "Sizes do not match"
+    expr = u.dot_product(x) * v.dot_product(y) - u.dot_product(y) * v.dot_product(x)  
+    assert expr == 0, "Keys does not match"
 
     xy = vector(x[:-2].list() + y[:-2].list())
 
@@ -41,22 +93,11 @@ def generate_system(n, field_eq_op, verbose):
     k = 2*(n-2)+1 # Degree of field extension
     nvars = k-1
 
-    if n < 1:
-        print("the vector's size must be positive")
-        sys.exit(1)
-
     F_q = GF(q)
-    F_qn.<t> = GF(q^k, 't')
-
-    u = load("keys/u.sobj")
-    v = load("keys/v.sobj")
+    F_qn = GF(q^k, 't')
 
     if verbose:
         start_time = time.time()
-
-    assert len(u) == len(v) == len(x) == len(y), "Sizes do not match"
-
-    assert u.dot_product(x) * v.dot_product(y) == u.dot_product(y) * v.dot_product(x), "NSBC not right"
 
     if verbose:
         print("assert ok")
@@ -71,6 +112,9 @@ def generate_system(n, field_eq_op, verbose):
     
     # Construire g
     g = construct_g(R, monomials, u, v, n)
+
+    print(f"n_x = {nvars // 2} n_y = {nvars // 2} m = {k}")
+    print(f"number of monomials in g: {len(g.monomials())}")
 
     if verbose:
         print("computed g")
@@ -118,4 +162,4 @@ if __name__ == '__main__':
 
     n = int(sys.argv[1])
     field_eq = bool(int(sys.argv[2]))
-    generate_system(n, field_eq, False)
+    generate_system(n, field_eq, True)

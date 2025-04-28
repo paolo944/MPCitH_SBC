@@ -8,3 +8,4 @@ system.sobj
 *.sage.py
 
 analysis*.txt
+perf*

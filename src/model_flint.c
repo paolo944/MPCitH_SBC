@@ -8,6 +8,7 @@
 #include "flint/fq_nmod.h"
 #include "flint/fq_nmod_vec.h"
 #include "flint/fq_nmod_mpoly.h"
+#include "flint/nmod_poly.h"
 #include "flint/nmod_mpoly.h"
 #include "read_fq.h"
 #include "gen_g_poly.h"
@@ -86,9 +87,18 @@ int main(int argc, char **argv)
 
     // Field and ring init
     const char *var = "t";
-
     fq_nmod_ctx_t field;
-    fq_nmod_ctx_init_ui(field, q, k, var);
+
+    if(k == 257){
+        nmod_poly_t modulus;
+        nmod_poly_init(modulus, 2);
+        nmod_poly_set_coeff_ui(modulus, 257, 1);
+        nmod_poly_set_coeff_ui(modulus, 12, 1);
+        nmod_poly_set_coeff_ui(modulus, 0, 1);
+        fq_nmod_ctx_init_modulus(field, modulus, var);
+    }
+    else
+        fq_nmod_ctx_init_ui(field, q, k, var);
 
     fq_nmod_mpoly_ctx_t mpoly_ring;
     fq_nmod_mpoly_ctx_init(mpoly_ring, nvars, ORD_LEX, field);
@@ -118,6 +128,39 @@ int main(int argc, char **argv)
 
     printf("-------Generated g\n");
 
+    // Test the keys by evaluating g on x and y
+    printf("-------Testing if g(x, y) = 0\n");
+
+    fq_nmod_t ev;
+    fq_nmod_init(ev, field);
+
+    slong i;
+
+    fq_nmod_struct **vals;
+    vals = (fq_nmod_struct **) flint_malloc(nvars*sizeof(fq_nmod_struct *));
+    for (i = 0; i < nvars/2; i++)
+    {
+        vals[i] = (fq_nmod_struct *) flint_malloc(sizeof(fq_nmod_struct));
+        fq_nmod_init(vals[i], field);
+        fq_nmod_set(vals[i], (fq_nmod_t){x[i]}, field);
+    }
+    for (i = nvars/2; i < nvars; i++)
+    {
+        vals[i] = (fq_nmod_struct *) flint_malloc(sizeof(fq_nmod_struct));
+        fq_nmod_init(vals[i], field);
+        fq_nmod_set(vals[i], (fq_nmod_t){y[i - nvars/2]}, field);
+    }
+
+    fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, vals, mpoly_ring);
+
+    if(fq_nmod_is_zero(ev, field))
+        printf("\tg(x, y) = 0\n");
+    else{
+        printf("\tg(x, y) != 0\n\t");
+        fq_nmod_print_pretty(ev, field);
+        printf("\n");
+    }
+
     // char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     // gen_monomials_str(monomials, n-2);
     // fq_nmod_mpoly_print_pretty(g, (const char**)monomials, mpoly_ring);
@@ -141,44 +184,11 @@ int main(int argc, char **argv)
 
     printf("-------Writing the system in %s\n", file_name);
 
-    
-
     char **monomials = (char**)calloc(2*(n-2), sizeof(char*));
     gen_monomials_str(monomials, n-2);
     fprint_system(system, (const char**)monomials, system_mpoly_ring, file_name, nvars, k+nvars, format, field_eq);
     clear_monomials_str(monomials, n-2);
     clear_system(&system, system_mpoly_ring, k+nvars);
- 
-    // Test the keys by evaluating g on x and y
-    fq_nmod_t ev;
-    fq_nmod_init(ev, field);
-
-    slong i;
-
-    fq_nmod_struct **vals;
-    vals = (fq_nmod_struct **) flint_malloc(nvars*sizeof(fq_nmod_struct *));
-    for (i = 0; i < nvars/2; i++)
-    {
-        vals[i] = (fq_nmod_struct *) flint_malloc(sizeof(fq_nmod_struct));
-        fq_nmod_init(vals[i], field);
-        fq_nmod_set(vals[i], (fq_nmod_t){x[i]}, field);
-    }
-    for (i = nvars/2; i < nvars; i++)
-    {
-        vals[i] = (fq_nmod_struct *) flint_malloc(sizeof(fq_nmod_struct));
-        fq_nmod_init(vals[i], field);
-        fq_nmod_set(vals[i], (fq_nmod_t){y[i - nvars/2]}, field);
-    }
-
-    fq_nmod_mpoly_evaluate_all_fq_nmod(ev, g, vals, mpoly_ring);
-    
-    printf("-------Testing if g(x, y) = 0\n");
-    if(fq_nmod_is_zero(ev, field))
-        printf("\tg(x, y) = 0\n");
-    else{
-        printf("\tg(x, y) != 0\n\t");
-        fq_nmod_print_pretty(ev, field);
-    }
    
     for (slong i = 0; i < nvars; i++)
     {

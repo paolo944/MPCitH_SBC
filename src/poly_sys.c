@@ -48,8 +48,10 @@ void init_system(nmod_mpoly_t **system, const nmod_mpoly_ctx_t mpoly_ring, slong
         return;
     }
 
-    for (slong i = 0; i < k; i++)
+    for (slong i = 0; i < k; i++){
         nmod_mpoly_init((nmod_mpoly_struct *)(*system + i), mpoly_ring);
+        // nmod_mpoly_fit_length((nmod_mpoly_struct *)(*system + i), (k*k)/8, mpoly_ring);
+    }
 
     return;
 }
@@ -81,6 +83,14 @@ void create_poly_system(fq_nmod_mpoly_t g, nmod_mpoly_t **system, const fq_nmod_
         fq_nmod_mpoly_get_term_coeff_fq_nmod(c, g, i, mpoly_ring);
         append_system(system, c, m, mpoly_ring->fqctx, system_mpoly_ring, mpoly_ring);
     }
+
+    // slong k = fq_nmod_ctx_degree(mpoly_ring->fqctx);
+    // slong r = 0;
+    // for (slong i = 0; i < k; i++){
+    //     r = nmod_mpoly_length((const nmod_mpoly_struct *)(*system + i), system_mpoly_ring);
+    //     printf("r: %ld i: %ld\n", r, i);
+    //     //nmod_mpoly_fit_length(nmod_mpoly_t A, , mpoly_ring)
+    // }
 
     slong nvars = nmod_mpoly_ctx_nvars(system_mpoly_ring);
     slong deg = fq_nmod_ctx_degree(mpoly_ring->fqctx);

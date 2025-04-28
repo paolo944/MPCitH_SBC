@@ -40,34 +40,46 @@ void gen_g_poly(fq_nmod_mpoly_t g, fq_nmod_struct *u, fq_nmod_struct *v,
     fq_nmod_mpoly_set_fq_nmod(vx, (const fq_nmod_t){v[vec_size-2]}, mpoly_ring);
     fq_nmod_mpoly_set_fq_nmod(vy, (const fq_nmod_t){v[vec_size-1]}, mpoly_ring);
 
-    //char **x = (char**)flint_calloc(2*(vec_size-2), sizeof(char*));
-    //gen_monomials_str(x, vec_size-2);
+    // char **x = (char**)flint_calloc(2*(vec_size-2), sizeof(char*));
+    // gen_monomials_str(x, vec_size-2);
 
     for(int i = 0; i < vec_size-2; i++)
     {
+        fq_nmod_mpoly_zero(tmp1, mpoly_ring);
+        fq_nmod_mpoly_zero(tmp2, mpoly_ring);
+
         fq_nmod_mpoly_gen(tmp2, i, mpoly_ring);
         
-        //fq_nmod_mpoly_print_pretty(tmp2, (const char**)x, mpoly_ring);
-        //printf(" ");
+        // fq_nmod_mpoly_print_pretty(tmp2, (const char**)x, mpoly_ring);
+        // printf(" ");
 
         fq_nmod_mpoly_scalar_mul_fq_nmod(tmp1, tmp2, (const fq_nmod_t){u[i]}, mpoly_ring);
         fq_nmod_mpoly_add(ux, ux, tmp1, mpoly_ring);
 
+        fq_nmod_mpoly_zero(tmp1, mpoly_ring);
+
         fq_nmod_mpoly_scalar_mul_fq_nmod(tmp1, tmp2, (const fq_nmod_t){v[i]}, mpoly_ring);
         fq_nmod_mpoly_add(vx, vx, tmp1, mpoly_ring);
 
+        fq_nmod_mpoly_zero(tmp1, mpoly_ring);
+        fq_nmod_mpoly_zero(tmp2, mpoly_ring);
 
         fq_nmod_mpoly_gen(tmp2, i+vec_size-2, mpoly_ring);
 
-        //fq_nmod_mpoly_print_pretty(tmp2, (const char**)x, mpoly_ring);
-        //printf("\n");
+        // fq_nmod_mpoly_print_pretty(tmp2, (const char**)x, mpoly_ring);
+        // printf("\n");
 
         fq_nmod_mpoly_scalar_mul_fq_nmod(tmp1, tmp2, (const fq_nmod_t){u[i]}, mpoly_ring);
         fq_nmod_mpoly_add(uy, uy, tmp1, mpoly_ring);
 
+        fq_nmod_mpoly_zero(tmp1, mpoly_ring);
+
         fq_nmod_mpoly_scalar_mul_fq_nmod(tmp1, tmp2, (const fq_nmod_t){v[i]}, mpoly_ring);
         fq_nmod_mpoly_add(vy, vy, tmp1, mpoly_ring);
     }
+
+    fq_nmod_mpoly_zero(tmp1, mpoly_ring);
+    fq_nmod_mpoly_zero(tmp2, mpoly_ring);
 
     fq_nmod_mpoly_mul(tmp1, ux, vy, mpoly_ring);
     fq_nmod_mpoly_mul(tmp2, uy, vx, mpoly_ring);
@@ -81,7 +93,7 @@ void gen_g_poly(fq_nmod_mpoly_t g, fq_nmod_struct *u, fq_nmod_struct *v,
     fq_nmod_mpoly_clear(tmp1, mpoly_ring);
     fq_nmod_mpoly_clear(tmp2, mpoly_ring);
 
-    //clear_monomials_str(x, (vec_size-2));
+    // clear_monomials_str(x, (vec_size-2));
 
     return;
 }
