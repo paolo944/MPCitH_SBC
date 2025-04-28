@@ -1,6 +1,4 @@
-def doit(n, m):
-    R = PolynomialRing(GF(2), n, 'x')
-    
+def doit(n, m, R):    
     # planted solution
     V = GF(2)**n 
     x = V.random_element() 
@@ -21,10 +19,6 @@ def doit(n, m):
         f += f(*x) 
         I.append(f)
 
-    monomials = R.gens()
-
-    for i in range(n):
-        I.append(monomials[i]**2 - monomials[i])
     return I
 
 def Md(n):
@@ -41,9 +35,20 @@ def hilbert_function(n, mpol, deg):
     if(degree < 2 or mpol == 0):
         return binomial(nvar,deg)
 
+def homogenize(system, R):
+    system_homo = []
+    for poly in system:
+        poly_homo = R(0)
+        for monomial in poly.monomials():
+            if monomial.deg() == 2:
+                poly_homo += monomial
+        system_homo.append(poly_homo)
+    return system_homo
+
 if(sys.argv[1] == "random"):
     try:
-        system = doit(int(sys.argv[2]), int(sys.argv[3]))
+        R = PolynomialRing(GF(2), int(sys.argv[2]), 'x')
+        system = doit(int(sys.argv[2]), int(sys.argv[3]), R)
     except Exception as error:
         print("Erreur pendant la génération du système aléatoire: ", error)
         sys.exit(1)
@@ -54,13 +59,17 @@ else:
         print("Erreur pendant le load: ", error)
         sys.exit(1)
 
+#print(system)
+#system2 = homogenize(system, R)
+#print(system2)
+
 system2 = []
 for i in system:
     try:
         system2.append(i.homogeneous_components()[2])
     except KeyError:
         system2.append(i.homogeneous_components()[1])
-#print(system2)
+
 I = ideal(system2)
 
 field = ZZ
