@@ -5,12 +5,34 @@ import random
 #load('scripts/key_init.sage')
 #load('scripts/modelisation.sage')
 
+def load_system(f):
+    with open(f, 'r') as fd:
+        lignes = fd.readlines()
+    
+    if not lignes:
+        raise ValueError("Le fichier est vide.")
+
+    variables = lignes[0].strip().replace(' ', '').split(',')
+    R = PolynomialRing(GF(2), variables)
+    system = []
+    for i, ligne in enumerate(lignes[1:], start=1):
+        ligne = ligne.strip()
+        if ligne:
+            try:
+                poly = R(ligne)
+                system.append(poly)
+                print(f"[{i}/{len(lignes)-1}]")
+            except Exception as e:
+                print(f"Erreur à la ligne {i+1} : '{ligne}' → {e}")
+    
+    return system
+
 def analyze_system_with_subs(system, k):
     all_monomials = set()
     for poly in system:
         all_monomials.update(poly.monomials())
 
-    #print(all_monomials)
+    #print(f"Original number of monomials: {len(all_monomials)}")
 
     all_vars = system[0].parent().gens()
 
@@ -61,6 +83,19 @@ def analyze_system_with_subs_v2(system, k):
 
     return len(all_monomials), len(stripped_monomials)
 
+def batch_analyze(fn, output):
+    system = load_system(fn)
+    k = len(system)
+    nvar = system[0].parent().ngens()
+    n_y = system[0].parent().ngens() // 2
+    with open(output, 'w') as f:
+        f.write(f"n = {nvar} m = {k} n_x = n_y = {n_y}\n")
+        f.write("k,total_monomials,remaining_monomials\n")
+        for k in range(n_y // 2, n_y+1):
+                total_monomials, remaining_monomials = analyze_system_with_subs(system, k)
+                f.write(f"{k},{total_monomials},{remaining_monomials}\n")
+                print(f"k = {k} / {n_y} complete for {nvar} variables")
+
 def run_batch(n, output_file="most_common_results.txt"):
     # Open output file for writing results
     with open(output_file, 'w') as f:
@@ -74,8 +109,11 @@ def run_batch(n, output_file="most_common_results.txt"):
                 print(f"k = {k} / {n_y} complete for {2*(n-2)} variables")
 
 if __name__ == '__main__':
-    num_vars = 50
+    num_vars = 257
     output_filename = f"analysis_results_{num_vars}_most.txt"
     #system = load("system/sage/system_bilin_56_113.sobj")
+    #system = load_system("system/hpXbred/system_bilin_256_257.in")
+    #print("read system")
     #analyze_system_with_subs(system,1)
-    run_batch(num_vars, output_filename)
+    #run_batch(num_vars, output_filename)
+    batch_analyze("system/hpXbred/system_bilin_256_257.in", "256_257.txt")
