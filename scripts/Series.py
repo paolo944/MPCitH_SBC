@@ -6,10 +6,10 @@ y = sym.Symbol('y')
 yy = sym.Symbol('yy')
 
 """ Paramètres """
-k = 21
+k = 24
 o2 = 31
-n = o2 - 2
-m = 2*o2 - 1
+n = 80
+m = 160
 
 d1 = 7
 d2 = 6
@@ -68,9 +68,10 @@ J = ser(sym.expand(Sx * Sy * tmp))
 
 """ Print la série G(X,Y) """
 print(ser(G))
+print()
 
 """ Print la série J(X,Y) """
-print(ser(G-J))
+print(f"J: {ser(G-J)}")
 print(" ")
 
 """

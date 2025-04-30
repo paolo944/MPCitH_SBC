@@ -45,8 +45,33 @@ def homogenize(system, R):
         system_homo.append(poly_homo)
     return system_homo
 
-def compute_series_bilinear(I):
-    denom = (1-
+def hilbert_biseries(n, m):
+    R.<t1,t2> = PowerSeriesRing(ZZ)
+    denom = (1 - t1)^(n + 1) * (1 - t2)^(n+1)
+    Nm = (1 - t1*t2)^m
+    S1 = 0
+    S2 = 0
+    for l in range(1, m - (n + 1) + 1):
+        term1 = (1 - t1*t2)^(m - (n + 1) - l) * t1*t2*(1-t2)^(n + 1)
+        term2 = (1 - t1*t2)^(m - (n + 1) - l) * t1*t2*(1-t1)^(n + 1)
+
+        Brackets1 = 1 - (1 - t1)^l
+        Brackets2 = 1 - (1 - t1)^l
+        S1_in = 0
+        S2_in = 0
+
+        for k in range(1, n + 1):
+            S1_in += t1^(n + 1 - k)*binomial(l + n - k, n + 1 - k)
+            S1_in += t2^(n + 1 - k)*binomial(l + n - k, n + 1 - k)
+        
+        Brackets1 *= S1_in
+        Brackets2 *= S2_in
+
+        S1 += term1 * S1_in
+        S2 += term2 * S2_in
+    Nm += S1 + S2
+    return Nm / denom
+
 
 if(sys.argv[1] == "random"):
     try:
@@ -107,9 +132,11 @@ num = series_ring((1-t)**n)
 res = num.inverse_of_unit() * denom
 print(f"Generating series of the sequence: {res}")
 
+bi_reg = hilbert_biseries(4, 9)
 hilbert_series = I.hilbert_series()
 hilbert_series_denom = hilbert_series.denominator()
 hilbert_series_num = hilbert_series.numerator()
 res2 = series_ring(hilbert_series_num) * series_ring(hilbert_series_denom).inverse_of_unit()
 print(f"The hilbert series of I is: {res2}")
+print(f"Série bi-regulière: {bi_reg}")
 print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")

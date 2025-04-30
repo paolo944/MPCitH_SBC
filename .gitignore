@@ -9,3 +9,6 @@ system.sobj
 
 analysis*.txt
 perf*
+
+parametres_admissibles_crossbred
+parametres_admissibles_crossbred_sbc
