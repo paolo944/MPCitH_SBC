@@ -45,6 +45,9 @@ def homogenize(system, R):
         system_homo.append(poly_homo)
     return system_homo
 
+def compute_series_bilinear(I):
+    denom = (1-
+
 if(sys.argv[1] == "random"):
     try:
         R = PolynomialRing(GF(2), int(sys.argv[2]), 'x')
@@ -97,11 +100,11 @@ n = system[0].parent().ngens()
 
 denom = 1
 for i in system2:
-    denom *= (1+t**i.degree())
+    denom *= (1-t**i.degree())
 
 denom = series_ring(denom)
-num = series_ring((1+t)**n)
-res = num * denom.inverse_of_unit()
+num = series_ring((1-t)**n)
+res = num.inverse_of_unit() * denom
 print(f"Generating series of the sequence: {res}")
 
 hilbert_series = I.hilbert_series()
