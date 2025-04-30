@@ -49,6 +49,12 @@ def construct_g(R, monomials, u, v, n):
         uy += R(u[i])*monomials[i+n-2]
         vy += R(v[i])*monomials[i+n-2]
 
+    monomes = set()
+    monomes.update((ux*vy).monomials())
+    monomes.update((uy*vx).monomials())
+
+    print(f"nb monomes {len(monomes)}") 
+
     return ux*vy - uy*vx
 
 def decompose_g(R, g, basis, monomials_str, k):
