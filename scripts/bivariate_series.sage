@@ -1,5 +1,9 @@
 def H_k_m_n(k, m, n):
-    R.<X,Y> = PowerSeriesRing(ZZ)
+    """
+    Function to generate the series H in https://ia.cr/2024/992
+    To change the precision, change the parameter default_prec
+    """
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=15)
     termX = (1+X)^(n-k)
     termXY1 = (1+X*Y)^k
     termXY2 = (1+X^2 * Y^2)^m
@@ -7,13 +11,31 @@ def H_k_m_n(k, m, n):
     return H
 
 def G_k_m_n(k, m, n):
-    R.<X,Y> = PowerSeriesRing(ZZ)
+    """
+    Function to generate the series G in https://ia.cr/2024/992
+    To change the precision, change the parameter default_prec
+    """
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=15)
     termX = (1+X)^(n-k)
     termXY1 = (1+X)^k
     termXY2 = (1+X^2)^m
     H_1 = (termX - (termXY1 * termX) / termXY2)
     G = -(Y*H_k_m_n(k, m, n) - H_1)/((1-X)*(1-Y))
     return G
+
+def J_k_m_n(k, m, n):
+    """
+    Function to generate the series J in https://ia.cr/2024/992
+    To change the precision, change the parameter default_prec
+    """
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=32)
+    term1 = 1 / ((1 - X)*(1 - Y))
+    termX = (1 + X)^(n-k)
+    termXY1 = (1 + X*Y)^k
+    termXY2 = (1 + X^2 * Y^2)^m
+    grosTerme = (termX * termXY1) / termXY2
+    J = term1 * (grosTerme - ((1 + X)^n / (1 + X^2)^m) - ((1 + Y)^k / (1 + Y^2)^m))
+    return J
 
 def parametres_admissibles(k, m, n):
     parametres = G_k_m_n(k, m, n).monomial_coefficients()
@@ -24,17 +46,11 @@ def parametres_admissibles(k, m, n):
                 parametres_admissibles[(d1, d2)] = value
     return parametres_admissibles
 
-def J_k_m_n(k, m, n):
-    R.<X,Y> = PowerSeriesRing(ZZ)
-    term1 = 1 / ((1 - X)*(1 - Y))
-    termX = (1 + X)^(n-k)
-    termXY1 = (1 + X*Y)^k
-    termXY2 = (1 + X^2 * Y^2)^m
-    grosTerme = (termX * termXY1) / termXY2
-    J = term1 * (grosTerme - ((1 + X)^n / (1 + X^2)^m) - ((1 + Y)^k / (1 + Y^2)^m)) + R.O(10)
-    return J
-
 def parametres_admissibles_crossbred(k, m, n):
+    """
+    Returns the admissible parameters for the crossbred
+    algorithm as in https://ia.cr/2024/992
+    """
     parametres = J_k_m_n(k, m, n).monomial_coefficients()
     parametres_admissibles = {}
     for (d1, d2), value in parametres.items():
@@ -55,12 +71,16 @@ def try_parameters(m, n, k_min, k_max, fn):
                 f.write(f"{d1},{d2},{k},{m},{n},{value}\n")
 
 def try_parameters_crossbred(m, n, k_min, k_max, fn):
+    """
+    Tries multiple parameters with different k_min <= k <= k_max
+    and writes the result in fn
+    """
     #file header
     with open(fn, "w") as f:
         f.write("d1,d2,k,m,n,coeff\n")
 
         for k in range(k_min, k_max+1):
-            #print(f"k: {k}")
+            print(f"k: {k}")
             p_admi = parametres_admissibles_crossbred(k, m, n)
             for (d1, d2), value in p_admi.items():
                 f.write(f"{d1},{d2},{k},{m},{n},{value}\n")
@@ -69,12 +89,16 @@ def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
         print(f"n: {n}")
         m = n + 1
-        k_min = n // 4
-        k_max = n // 2
+        k_min = n - 90
+        k_max = n - 30
         fn = f"parametres_admissibles_crossbred/{m}_{n}.csv"
         try_parameters_crossbred(m, n, k_min, k_max, fn)
 
 def parametres_crossbred_sbc(min_n, max_n):
+    """
+    Tries multiple valid parameters for SBC
+    where m is prime and m = n+1
+    """
     m = next_prime(min_n) 
     m_max = next_prime(max_n + 1)
     while m <= m_max:
@@ -83,8 +107,8 @@ def parametres_crossbred_sbc(min_n, max_n):
             m = next_prime(m + 1)
             continue
         print(f"n: {n} m: {m}")
-        k_min = n // 4
-        k_max = n // 2
+        k_min = n - 90
+        k_max = n - 30
         fn = f"parametres_admissibles_crossbred_sbc/{m}_{n}.csv"
         try_parameters_crossbred(m, n, k_min, k_max, fn)
         m = next_prime(m + 1)
@@ -97,4 +121,4 @@ def parametres_crossbred_sbc(min_n, max_n):
 #print(f"Parametres admissibles CrossBred: {parametres_admissibles_crossbred(24, 160, 80)}")
 #try_parameters_crossbred(257, 256, 64, 128, "parametres_admissibles_crossbred_256_257.csv")
 #parametres_crossbred_large(10, 256)
-parametres_crossbred_sbc(10, 300)
+parametres_crossbred_sbc(256, 257)
