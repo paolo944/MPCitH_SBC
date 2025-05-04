@@ -37,6 +37,13 @@ def J_k_m_n(k, m, n):
     J = term1 * (grosTerme - ((1 + X)^n / (1 + X^2)^m) - ((1 + Y)^k / (1 + Y^2)^m))
     return J
 
+def nb_monomials(d1, d2, k, n):
+    term1 = binomial(k, d2 + 1)
+    if d2 > d1 - 1:
+        return 0
+    term2 = binomial((n - k), d1 - d2 - 1)
+    return term1 * term2
+
 def parametres_admissibles(k, m, n):
     parametres = G_k_m_n(k, m, n).monomial_coefficients()
     parametres_admissibles = {}
@@ -77,13 +84,16 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
     """
     #file header
     with open(fn, "w") as f:
-        f.write("d1,d2,k,m,n,coeff\n")
-
+        f.write("d1,d2,nb_new_poly,nb_cols,complexity_pre\n")
+        f.write(f"#n = {n} m = {m}\n")
         for k in range(k_min, k_max+1):
             print(f"k: {k}")
             p_admi = parametres_admissibles_crossbred(k, m, n)
+            f.write(f"\n\nexhaustive search over {n - k} bits:\n")
             for (d1, d2), value in p_admi.items():
-                f.write(f"{d1},{d2},{k},{m},{n},{value}\n")
+                nb_cols = nb_monomials(d1, d2, k, n)
+                complexity_pre = nb_cols.nbits() + 2
+                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre}\n")
 
 def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
