@@ -1,3 +1,5 @@
+import time
+
 def H_k_m_n(k, m, n):
     """
     Function to generate the series H in https://ia.cr/2024/992
@@ -28,7 +30,7 @@ def J_k_m_n(k, m, n):
     Function to generate the series J in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=32)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
     term1 = 1 / ((1 - X)*(1 - Y))
     termX = (1 + X)^(n-k)
     termXY1 = (1 + X*Y)^k
@@ -80,20 +82,56 @@ def try_parameters(m, n, k_min, k_max, fn):
 def try_parameters_crossbred(m, n, k_min, k_max, fn):
     """
     Tries multiple parameters with different k_min <= k <= k_max
-    and writes the result in fn
+    and writes the result in fn, sorted by complexity_pre.
     """
-    #file header
     with open(fn, "w") as f:
-        f.write("d1,d2,nb_new_poly,nb_cols,complexity_pre\n")
+        # File header
+        f.write("d1,d2,value_J,nb_cols,complexity_pre,estimated_footprint\n")
         f.write(f"#n = {n} m = {m}\n")
-        for k in range(k_min, k_max+1):
+        sizes = []
+
+        for k in range(k_min, k_max + 1):
             print(f"k: {k}")
+            complex_exhaustive = ceil(log(n - k)).bit_length() + (n - k)
             p_admi = parametres_admissibles_crossbred(k, m, n)
-            f.write(f"\n\nexhaustive search over {n - k} bits:\n")
+
+            f.write(f"\n\nexhaustive search over {n - k} bits costing 2^{complex_exhaustive}:\n")
+
+            data_rows = []
+
             for (d1, d2), value in p_admi.items():
+                if d2 >= d1:
+                    continue
                 nb_cols = nb_monomials(d1, d2, k, n)
-                complexity_pre = nb_cols.nbits() + 2
-                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre}\n")
+                if nb_cols > (value + m):
+                    complexity_pre = nb_cols.bit_length() + 2
+                else:
+                    complexity_pre = (value + m).bit_length() + 2
+                #if complexity_pre >= 128:
+                #    continue
+
+                footprint = ceil(nb_cols/8)*(value+m)//1000
+
+                row = (footprint, d1, d2, value, nb_cols, complexity_pre)
+                data_rows.append(row)
+
+            # Sort rows by complexity_pre
+            data_rows.sort()
+            for i in range(len(data_rows)):
+                if data_rows[i][0] > 0:
+                    sizes.append((data_rows[i][0], data_rows[i][5], data_rows[i][1], data_rows[i][2], k))
+                    break
+
+            for footprint, d1, d2, value, nb_cols, complexity_pre in data_rows:
+                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{footprint}KB\n")
+
+        sizes.sort()
+        print(sizes[0])
+        print(sizes[1])
+        print(sizes[2])
+        print(sizes[3])
+        print(sizes[4])
+        print(sizes[5])
 
 def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
@@ -131,4 +169,8 @@ def parametres_crossbred_sbc(min_n, max_n):
 #print(f"Parametres admissibles CrossBred: {parametres_admissibles_crossbred(24, 160, 80)}")
 #try_parameters_crossbred(257, 256, 64, 128, "parametres_admissibles_crossbred_256_257.csv")
 #parametres_crossbred_large(10, 256)
-parametres_crossbred_sbc(256, 257)
+#parametres_crossbred_sbc(256, 257)
+start = time.time()
+try_parameters_crossbred(151, 150, 60, 120, "parametres_admissibles_crossbred_sbc/151_150.csv")
+end = time.time()
+print(f"{end - start} s")
