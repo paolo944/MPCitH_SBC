@@ -72,6 +72,14 @@ def hilbert_biseries(n, m):
     Nm += S1 + S2
     return Nm / denom
 
+def convert_bi_series(Hs):
+    coefficients = Hs.monomial_coefficients()
+    prec = Hs.prec()
+    R.<z> = PowerSeriesRing(ZZ, default_prec=prec)
+    H = R(0)
+    for (t1, t2), coeff in coefficients.items():
+        H += coeff*z^(t1 + t2)
+    return H
 
 if(sys.argv[1] == "random"):
     try:
@@ -133,10 +141,12 @@ res = num.inverse_of_unit() * denom
 print(f"Generating series of the sequence: {res}")
 
 bi_reg = hilbert_biseries(4, 9)
+bi_reg_uni = convert_bi_series(bi_reg)
 hilbert_series = I.hilbert_series()
 hilbert_series_denom = hilbert_series.denominator()
 hilbert_series_num = hilbert_series.numerator()
 res2 = series_ring(hilbert_series_num) * series_ring(hilbert_series_denom).inverse_of_unit()
 print(f"The hilbert series of I is: {res2}")
 print(f"Série bi-regulière: {bi_reg}")
+print(f"Série bi-regulière convertie: {bi_reg_uni}")
 print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")

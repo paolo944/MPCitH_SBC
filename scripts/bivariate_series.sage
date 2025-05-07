@@ -112,6 +112,8 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
             for (d1, d2), value in p_admi.items():
                 if d2 >= d1 - 1:
                     continue
+                if d2 == 0:
+                    continue
                 nb_cols = nb_monomials(d1, d2, k, n)
                 if nb_cols == 0:
                     continue
@@ -183,7 +185,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_large(10, 256)
 #parametres_crossbred_sbc(256, 257)
 
-#start = time.time()
-#try_parameters_crossbred(101, 100, 10, 90, "parametres_admissibles_crossbred_sbc/101_100.csv")
-#end = time.time()
-#print(f"{end - start} s")
+start = time.time()
+try_parameters_crossbred(257, 256, 166, 226, "parametres_admissibles_crossbred_sbc/101_100.csv")
+end = time.time()
+print(f"{end - start} s")
