@@ -38,7 +38,7 @@ def J_k_m_n(k, m, n):
     Function to generate the series J in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=30)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
     term1 = 1 / ((1 - X)*(1 - Y))
     termX = (1 + X)^(n-k)
     termXY1 = (1 + X*Y)^k
@@ -53,6 +53,16 @@ def nb_monomials(d1, d2, k, n):
         return 0
     term2 = binomial((n - k), d1 - d2 - 1)
     return term1 * term2
+
+def sparse_factor(n, d1, d2):
+    return (n*n // 4 + n // 2 + 1) / binomial(n+d2, d2)
+
+def get_footprint(nb_cols, nb_rows, sparsity):
+    footprint = nb_rows * 8
+    if(sparsity > 1/2):
+        return ceil(nb_cols * nb_rows / 8)
+    footprint += int(nb_cols * sparsity) * ceil(nb_cols.nbits() // 8)
+    return footprint
 
 def parametres_admissibles(k, m, n):
     parametres = G_k_m_n(k, m, n).monomial_coefficients()
@@ -94,14 +104,14 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
     """
     with open(fn, "w") as f:
         # File header
-        f.write("d1,d2,value_J,nb_cols,complexity_pre,estimated_footprint\n")
+        f.write("d1,d2,value_J,nb_cols,complexity_pre,estimated_footprint,sparsity_%\n")
         f.write(f"#n = {n} m = {m}\n")
         sizes = []
 
         for k in range(k_min, k_max + 1):
             if(k <= 0):
                 continue
-            print(f"k: {k}")
+            #print(f"k: {k}")
             complex_exhaustive = ceil(log(n - k)).bit_length() + (n - k)
             p_admi = parametres_admissibles_crossbred(k, m, n)
 
@@ -124,9 +134,11 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 #if complexity_pre >= 128:
                 #    continue
 
-                footprint = ceil(nb_cols/8)*(value+m) // 10 // 5
+                sparsity = sparse_factor(n, 2, d2)
 
-                row = (footprint, d1, d2, value, nb_cols, complexity_pre)
+                footprint = get_footprint(nb_cols, value + m, sparsity)
+
+                row = (footprint, d1, d2, value, nb_cols, complexity_pre, sparsity)
                 data_rows.append(row)
 
             # Sort rows by complexity_pre
@@ -136,16 +148,17 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                     sizes.append((data_rows[i][0], data_rows[i][5], data_rows[i][1], data_rows[i][2], n-k))
                     break
 
-            for footprint, d1, d2, value, nb_cols, complexity_pre in data_rows[:10]:
-                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)}\n")
+            for footprint, d1, d2, value, nb_cols, complexity_pre, sparsity in data_rows[:10]:
+                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)},{sparsity}\n")
 
+        f.write("\n\nBest memory footprint:\n")
         sizes.sort()
-        print(f"{format_bytes(sizes[0][0])},{sizes[0][1:]}")
-        print(f"{format_bytes(sizes[1][0])},{sizes[1][1:]}")
-        print(f"{format_bytes(sizes[2][0])},{sizes[2][1:]}")
-        print(f"{format_bytes(sizes[3][0])},{sizes[3][1:]}")
-        print(f"{format_bytes(sizes[4][0])},{sizes[4][1:]}")
-        print(f"{format_bytes(sizes[5][0])},{sizes[5][1:]}")
+        f.write(f"{format_bytes(sizes[0][0])},{sizes[0][1:]}\n")
+        f.write(f"{format_bytes(sizes[1][0])},{sizes[1][1:]}\n")
+        f.write(f"{format_bytes(sizes[2][0])},{sizes[2][1:]}\n")
+        f.write(f"{format_bytes(sizes[3][0])},{sizes[3][1:]}\n")
+        f.write(f"{format_bytes(sizes[4][0])},{sizes[4][1:]}\n")
+        f.write(f"{format_bytes(sizes[5][0])},{sizes[5][1:]}\n")
 
 def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
@@ -186,6 +199,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(257, 256, 166, 226, "parametres_admissibles_crossbred_sbc/101_100.csv")
+#try_parameters_crossbred(257, 256, 166, 226, "parametres_admissibles_crossbred_sbc/257_256.csv")
+parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
