@@ -38,7 +38,7 @@ def J_k_m_n(k, m, n):
     Function to generate the series J in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=70)
     term1 = 1 / ((1 - X)*(1 - Y))
     termX = (1 + X)^(n-k)
     termXY1 = (1 + X*Y)^k
@@ -111,7 +111,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         for k in range(k_min, k_max + 1):
             if(k <= 0):
                 continue
-            #print(f"k: {k}")
+            print(f"k: {k}")
             complex_exhaustive = ceil(log(n - k)).bit_length() + (n - k)
             p_admi = parametres_admissibles_crossbred(k, m, n)
 
@@ -127,14 +127,14 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 nb_cols = nb_monomials(d1, d2, k, n)
                 if nb_cols == 0:
                     continue
-                if nb_cols > (value + m):
-                    complexity_pre = nb_cols.bit_length() + 2
-                else:
-                    complexity_pre = (value + m).bit_length() + 2
                 #if complexity_pre >= 128:
                 #    continue
 
                 sparsity = sparse_factor(n, 2, d2)
+                nnz = (n*n // 4 + n // 2 + 1) * (value + m)
+
+                #Time complexity is O(nb_col*nnz) using block lanczos or wiedemann
+                complexity_pre = ceil(nb_cols * nnz).nbits()
 
                 footprint = get_footprint(nb_cols, value + m, sparsity)
 
@@ -199,7 +199,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-#try_parameters_crossbred(257, 256, 166, 226, "parametres_admissibles_crossbred_sbc/257_256.csv")
-parametres_crossbred_sbc(100, 256)
+try_parameters_crossbred(257, 256, 136, 226, "parametres_admissibles_crossbred_sbc/257_256_2.csv")
+#parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
