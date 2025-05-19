@@ -140,7 +140,7 @@ num = series_ring((1-t)**n)
 res = num.inverse_of_unit() * denom
 print(f"Generating series of the sequence: {res}")
 
-bi_reg = hilbert_biseries(4, 9)
+bi_reg = hilbert_biseries(3, 7)
 bi_reg_uni = convert_bi_series(bi_reg)
 hilbert_series = I.hilbert_series()
 hilbert_series_denom = hilbert_series.denominator()

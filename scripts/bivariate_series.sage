@@ -13,7 +13,7 @@ def H_k_m_n(k, m, n):
     Function to generate the series H in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=15)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
     termX = (1+X)^(n-k)
     termXY1 = (1+X*Y)^k
     termXY2 = (1+X^2 * Y^2)^m
@@ -25,7 +25,7 @@ def G_k_m_n(k, m, n):
     Function to generate the series G in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=15)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
     termX = (1+X)^(n-k)
     termXY1 = (1+X)^k
     termXY2 = (1+X^2)^m
@@ -38,7 +38,7 @@ def J_k_m_n(k, m, n):
     Function to generate the series J in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=70)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
     term1 = 1 / ((1 - X)*(1 - Y))
     termX = (1 + X)^(n-k)
     termXY1 = (1 + X*Y)^k
@@ -119,6 +119,9 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
 
             data_rows = []
 
+            g_serie = G_k_m_n(k, m, n).monomial_coefficients()
+            print(g_serie)
+
             for (d1, d2), value in p_admi.items():
                 if d2 >= d1 - 1:
                     continue
@@ -127,18 +130,16 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 nb_cols = nb_monomials(d1, d2, k, n)
                 if nb_cols == 0:
                     continue
-                #if complexity_pre >= 128:
-                #    continue
 
+                h_coeff = g_serie[(d1, d2)]
+                nrows = h_coeff + nb_cols
                 sparsity = sparse_factor(n, 2, d2)
-                nnz = (n*n // 4 + n // 2 + 1) * (value + m)
-
+                nnz = (n*n // 4 + n // 2 + 1) * (nrows)
                 #Time complexity is O(nb_col*nnz) using block lanczos or wiedemann
                 complexity_pre = ceil(nb_cols * nnz).nbits()
+                footprint = get_footprint(nb_cols, nrows, sparsity)
 
-                footprint = get_footprint(nb_cols, value + m, sparsity)
-
-                row = (footprint, d1, d2, value, nb_cols, complexity_pre, sparsity)
+                row = (footprint, d1, d2, nrows, nb_cols, complexity_pre, sparsity)
                 data_rows.append(row)
 
             # Sort rows by complexity_pre
