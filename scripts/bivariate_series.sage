@@ -1,4 +1,5 @@
 import time
+from sage.rings.polynomial.polydict import ETuple
 
 def format_bytes(size):
     size = float(size)
@@ -25,7 +26,7 @@ def G_k_m_n(k, m, n):
     Function to generate the series G in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=80)
     termX = (1+X)^(n-k)
     termXY1 = (1+X)^k
     termXY2 = (1+X^2)^m
@@ -38,7 +39,7 @@ def J_k_m_n(k, m, n):
     Function to generate the series J in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=80)
     term1 = 1 / ((1 - X)*(1 - Y))
     termX = (1 + X)^(n-k)
     termXY1 = (1 + X*Y)^k
@@ -119,10 +120,11 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
 
             data_rows = []
 
-            g_serie = G_k_m_n(k, m, n).monomial_coefficients()
-            print(g_serie)
+            g_serie = G_k_m_n(k, m, n)
+            g_dict = g_serie.dict()
 
-            for (d1, d2), value in p_admi.items():
+            for d, value in p_admi.items():
+                (d1, d2) = d
                 if d2 >= d1 - 1:
                     continue
                 if d2 == 0:
@@ -131,7 +133,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 if nb_cols == 0:
                     continue
 
-                h_coeff = g_serie[(d1, d2)]
+                h_coeff = g_dict[ETuple(list(d))]
                 nrows = h_coeff + nb_cols
                 sparsity = sparse_factor(n, 2, d2)
                 nnz = (n*n // 4 + n // 2 + 1) * (nrows)
@@ -139,7 +141,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 complexity_pre = ceil(nb_cols * nnz).nbits()
                 footprint = get_footprint(nb_cols, nrows, sparsity)
 
-                row = (footprint, d1, d2, nrows, nb_cols, complexity_pre, sparsity)
+                row = (complexity_pre, d1, d2, nrows, nb_cols,footprint, sparsity)
                 data_rows.append(row)
 
             # Sort rows by complexity_pre
