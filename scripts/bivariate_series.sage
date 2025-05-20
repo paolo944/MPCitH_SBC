@@ -183,6 +183,14 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
             else:
                 print("Skipping data: not enough elements", data)
 
+        f.write("\n\nBest max complexity complexity_pre | complexity_ex| d1 | d2 | footprint | n-k:\n")
+        fastest_combined_data.sort(key=lambda x: max(x[0], x[1]))
+        for data in fastest_combined_data[:6]:
+            if len(data) >= 5:
+                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
+            else:
+                print("Skipping data: not enough elements", data)
+
 def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
         print(f"n: {n}")
