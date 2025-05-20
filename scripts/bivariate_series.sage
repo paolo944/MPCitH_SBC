@@ -1,7 +1,7 @@
 import time
 from sage.rings.polynomial.polydict import ETuple
 
-prec = 80
+prec = 40
 
 def format_bytes(size):
     size = float(size)
@@ -111,6 +111,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         f.write(f"#n = {n} m = {m}\n")
         sizes = []
         fastest_data = []
+        fastest_combined_data = []
 
         for k in range(k_min, k_max + 1):
             if(k <= 0):
@@ -152,6 +153,8 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 if data_rows[i][0] > 0:
                     sizes.append((data_rows[i][0], data_rows[i][5], data_rows[i][1], data_rows[i][2], n-k))
                     fastest_data.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
+                    fastest_combined_data.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
+
 
             for footprint, d1, d2, value, nb_cols, complexity_pre, sparsity in data_rows[:10]:
                 f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)},{sparsity}\n")
@@ -167,6 +170,14 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         f.write("\n\nBest complexity complexity_pre | complexity_ex| d1 | d2 | footprint | n-k:\n")
         fastest_data.sort()
         for data in fastest_data[:6]:
+            if len(data) >= 5:
+                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
+            else:
+                print("Skipping data: not enough elements", data)
+
+        f.write("\n\nBest combined complexity complexity_pre | complexity_ex| d1 | d2 | footprint | n-k:\n")
+        fastest_combined_data.sort(key=lambda x: x[0] + x[1])
+        for data in fastest_combined_data[:6]:
             if len(data) >= 5:
                 f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
             else:
@@ -211,7 +222,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(256, 257, 120 , 230, "parametres_admissibles_crossbred_sbc/257_256.csv")
+try_parameters_crossbred(256, 257, 150, 160, "parametres_admissibles_crossbred_sbc/257_256.csv")
 #parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
