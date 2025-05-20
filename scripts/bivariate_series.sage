@@ -1,6 +1,8 @@
 import time
 from sage.rings.polynomial.polydict import ETuple
 
+prec = 80
+
 def format_bytes(size):
     size = float(size)
     for unit in ['o', 'Ko', 'Mo', 'Go', 'To']:
@@ -14,7 +16,7 @@ def H_k_m_n(k, m, n):
     Function to generate the series H in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=50)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=prec)
     termX = (1+X)^(n-k)
     termXY1 = (1+X*Y)^k
     termXY2 = (1+X^2 * Y^2)^m
@@ -26,7 +28,7 @@ def G_k_m_n(k, m, n):
     Function to generate the series G in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=80)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=prec)
     termX = (1+X)^(n-k)
     termXY1 = (1+X)^k
     termXY2 = (1+X^2)^m
@@ -39,7 +41,7 @@ def J_k_m_n(k, m, n):
     Function to generate the series J in https://ia.cr/2024/992
     To change the precision, change the parameter default_prec
     """
-    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=80)
+    R.<X,Y> = PowerSeriesRing(ZZ, default_prec=prec)
     term1 = 1 / ((1 - X)*(1 - Y))
     termX = (1 + X)^(n-k)
     termXY1 = (1 + X*Y)^k
@@ -108,6 +110,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         f.write("d1,d2,value_J,nb_cols,complexity_pre,estimated_footprint,sparsity_%\n")
         f.write(f"#n = {n} m = {m}\n")
         sizes = []
+        fastest_data = []
 
         for k in range(k_min, k_max + 1):
             if(k <= 0):
@@ -141,27 +144,33 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 complexity_pre = ceil(nb_cols * nnz).nbits()
                 footprint = get_footprint(nb_cols, nrows, sparsity)
 
-                row = (complexity_pre, d1, d2, nrows, nb_cols,footprint, sparsity)
+                row = (footprint, d1, d2, nrows, nb_cols, complexity_pre, sparsity)
                 data_rows.append(row)
 
-            # Sort rows by complexity_pre
             data_rows.sort()
             for i in range(len(data_rows)):
                 if data_rows[i][0] > 0:
                     sizes.append((data_rows[i][0], data_rows[i][5], data_rows[i][1], data_rows[i][2], n-k))
-                    break
+                    fastest_data.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
 
             for footprint, d1, d2, value, nb_cols, complexity_pre, sparsity in data_rows[:10]:
                 f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)},{sparsity}\n")
 
         f.write("\n\nBest memory footprint:\n")
         sizes.sort()
-        f.write(f"{format_bytes(sizes[0][0])},{sizes[0][1:]}\n")
-        f.write(f"{format_bytes(sizes[1][0])},{sizes[1][1:]}\n")
-        f.write(f"{format_bytes(sizes[2][0])},{sizes[2][1:]}\n")
-        f.write(f"{format_bytes(sizes[3][0])},{sizes[3][1:]}\n")
-        f.write(f"{format_bytes(sizes[4][0])},{sizes[4][1:]}\n")
-        f.write(f"{format_bytes(sizes[5][0])},{sizes[5][1:]}\n")
+        for data in sizes[:6]:
+            if len(data) >= 5:
+                f.write(f"{format_bytes(data[0])} | {data[1]} | {data[2]} | {data[3]} | {data[4]}\n")
+            else:
+                print("Skipping data: not enough elements", data)
+
+        f.write("\n\nBest complexity complexity_pre | complexity_ex| d1 | d2 | footprint | n-k:\n")
+        fastest_data.sort()
+        for data in fastest_data[:6]:
+            if len(data) >= 5:
+                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
+            else:
+                print("Skipping data: not enough elements", data)
 
 def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
@@ -202,7 +211,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(257, 256, 136, 226, "parametres_admissibles_crossbred_sbc/257_256_2.csv")
+try_parameters_crossbred(256, 257, 120 , 230, "parametres_admissibles_crossbred_sbc/257_256.csv")
 #parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
