@@ -213,7 +213,10 @@ def parametres_crossbred_sbc(min_n, max_n):
             m = next_prime(m + 1)
             continue
         print(f"n: {n} m: {m}")
-        k_min = n - 90
+        if n - 140 > 0:
+            k_min =  n - 140
+        else:
+            k_min = n - 90
         k_max = n - 30
         fn = f"parametres_admissibles_crossbred_sbc/{m}_{n}.csv"
         try_parameters_crossbred(m, n, k_min, k_max, fn)
