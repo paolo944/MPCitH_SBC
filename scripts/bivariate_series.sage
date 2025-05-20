@@ -1,4 +1,5 @@
 import time
+import sys
 from sage.rings.polynomial.polydict import ETuple
 
 prec = 40
@@ -10,6 +11,13 @@ def format_bytes(size):
             return f"{size:.2f} {unit}"
         size /= 1024
     return f"{size:.2f} Po"
+
+def print_progress_bar(current, total, bar_length=40):
+    percent = float(current) / total
+    arrow = '=' * int(round(percent * bar_length) - 1) + '>' if percent > 0 else ''
+    spaces = ' ' * (bar_length - len(arrow))
+    sys.stdout.write(f'\rProgress: [{arrow + spaces}] {int(percent * 100)}%')
+    sys.stdout.flush()
 
 def H_k_m_n(k, m, n):
     """
@@ -113,10 +121,17 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         fastest_data = []
         fastest_combined_data = []
 
+        total_k = k_max - k_min + 1
+        progress_counter = 0
+
+
         for k in range(k_min, k_max + 1):
             if(k <= 0):
                 continue
-            print(f"k: {k}")
+            progress_counter += 1
+            print_progress_bar(progress_counter, total_k)
+
+            #print(f"k: {k}")
             complex_exhaustive = ceil(log(n - k)).bit_length() + (n - k)
             p_admi = parametres_admissibles_crossbred(k, m, n)
 
@@ -190,6 +205,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
             else:
                 print("Skipping data: not enough elements", data)
+    print()
 
 def parametres_crossbred_large(min_n, max_n):
     for n in range(min_n, max_n + 1, 2):
