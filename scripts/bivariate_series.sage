@@ -65,14 +65,12 @@ def nb_monomials(d1, d2, k, n):
     term2 = binomial((n - k), d1 - d2 - 1)
     return term1 * term2
 
-def sparse_factor(n, d1, d2):
-    return (n*n // 4 + n // 2 + 1) / binomial(n+d2, d2)
+def sparse_factor(n, d1, d2, k):
+    return (n*n // 4 + n // 2 + 1) / nb_monomials(d1, d2, k, n)
 
-def get_footprint(nb_cols, nb_rows, sparsity):
+def get_footprint(nb_cols, nb_rows, nnz):
     footprint = nb_rows * 8
-    if(sparsity > 1/2):
-        return ceil(nb_cols * nb_rows / 8)
-    footprint += int(nb_cols * sparsity) * ceil(nb_cols.nbits() // 8)
+    footprint += nnz * 8
     return footprint
 
 def parametres_admissibles(k, m, n):
@@ -154,13 +152,17 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
 
                 h_coeff = g_dict[ETuple(list(d))]
                 nrows = h_coeff + nb_cols
-                sparsity = sparse_factor(n, 2, d2)
                 nnz = (n*n // 4 + n // 2 + 1) * (nrows)
-                #Time complexity is O(nb_col*nnz) using block lanczos or wiedemann
-                complexity_pre = ceil(nb_cols * nnz).nbits()
-                footprint = get_footprint(nb_cols, nrows, sparsity)
 
-                row = (footprint, d1, d2, nrows, nb_cols, complexity_pre, sparsity)
+                if(d2 == 1):
+                    #Time complexity is O(nb_col*nnz) using block lanczos or wiedemann if d2 = 1
+                    complexity_pre = float(log(nb_cols * nnz, 2))
+                    footprint = get_footprint(nb_cols, nrows, nnz)
+                else:
+                    complexity_pre = float(log(nb_cols^2.81, 2))
+                    footprint = ceil(nb_cols / 8)*nrows
+
+                row = (footprint, d1, d2, nrows, nb_cols, complexity_pre)
                 data_rows.append(row)
 
             data_rows.sort()
@@ -171,8 +173,8 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                     fastest_combined_data.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
 
 
-            for footprint, d1, d2, value, nb_cols, complexity_pre, sparsity in data_rows[:10]:
-                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)},{sparsity}\n")
+            for footprint, d1, d2, value, nb_cols, complexity_pre in data_rows[:10]:
+                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)}\n")
 
         f.write("\n\nBest memory footprint:\n")
         sizes.sort()
@@ -249,7 +251,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(256, 257, 150, 160, "parametres_admissibles_crossbred_sbc/257_256.csv")
+try_parameters_crossbred(256, 257, 120, 220, "parametres_admissibles_crossbred_sbc/257_256.csv")
 #parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
