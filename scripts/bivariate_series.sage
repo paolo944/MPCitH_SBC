@@ -2,7 +2,7 @@ import time
 import sys
 from sage.rings.polynomial.polydict import ETuple
 
-prec = 40
+prec = 50
 
 def format_bytes(size):
     size = float(size)
@@ -58,12 +58,18 @@ def J_k_m_n(k, m, n):
     J = term1 * (grosTerme - ((1 + X)^n / (1 + X^2)^m) - ((1 + Y)^k / (1 + Y^2)^m))
     return J
 
-def nb_monomials(d1, d2, k, n):
-    term1 = binomial(k, d2 + 1)
-    if d2 >= d1 - 1:
-        return 0
-    term2 = binomial((n - k), d1 - d2 - 1)
-    return term1 * term2
+def nb_monomials_M_D_d(d1, d2, k, n):
+    nb_monomials = 0
+    for i in range(d2 + 1, d1 + 1):
+        for j in range(0, d1 - i + 1):
+            nb_monomials += binomial(k, i) * binomial(n - k, j)
+    return nb_monomials
+
+def nb_monomials_Mac_d(d, k, n):
+    nb_monomials = 0
+    for i in range(d + 1):
+        nb_monomials += binomial(n-k, i)
+    return nb_monomials
 
 def nb_rows_M_D_d(n, m, k, D, d):
     nb_rows = 0
@@ -74,7 +80,8 @@ def nb_rows_M_D_d(n, m, k, D, d):
     return nb_rows*m
 
 def block_lancszos_complexity(r, W, n, c):
-    tmp = max(n^2*c^2 / W, c^2)
+    nnz_c = n*n // 4 + n / 2 + 1
+    tmp = max(nnz_c*c^2 / W, c^2)
     return r/W * tmp
 
 def block_wiendemann_complexity(n, mp, np, d, N):
@@ -160,7 +167,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                     continue
                 if d2 == 0:
                     continue
-                nb_cols = nb_monomials(d1, d2, k, n)
+                nb_cols = nb_monomials_M_D_d(d1, d2, k, n)
                 if nb_cols == 0:
                     continue
 
@@ -169,12 +176,12 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 nnz = (n*n // 4 + n // 2 + 1) * (nb_rows)
 
                 if(d2 == 1):
-                    #Time complexity is O(nb_col*nnz) using block lanczos or wiedemann if d2 = 1
-                    complexity_pre = float(log(block_lancszos_complexity(value//4, 64, n, nb_rows), 2))
+                    complexity_pre = float(log(block_lancszos_complexity(nb_rows * 5, 64, n, nb_rows), 2))
                 else:
                     complexity_pre = float(log(nb_cols^2.81, 2))
 
-                bw1 = block_wiendemann_complexity(n, 512, 512, d1, nb_cols)
+                nb_cols_mac_d = nb_monomials_Mac_d(d2, k, n)
+                bw1 = block_wiendemann_complexity(n, 512, 512, d1, nb_cols_mac_d)
                 complex_exhaustive = float(log((n-k) * bw1, 2))
 
                 footprint = get_footprint(nb_rows, nnz)
