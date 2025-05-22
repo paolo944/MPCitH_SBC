@@ -79,6 +79,12 @@ def nb_rows_M_D_d(n, m, k, D, d):
         nb_rows -= binomial(k, i)
     return nb_rows*m
 
+def nb_rows_Mac_d(n, m, k, d):
+    nb_rows = 0
+    for i in range(d+1):
+        nb_rows += binomial(n, i)
+    return nb_rows*m
+
 def block_lancszos_complexity(r, W, n, c):
     nnz_c = n*n // 4 + n / 2 + 1
     tmp = max(nnz_c*c^2 / W, c^2)
@@ -175,14 +181,18 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 nb_rows = nb_rows_M_D_d(n, m, k, d1, d2)
                 nnz = (n*n // 4 + n // 2 + 1) * (nb_rows)
 
+                """
                 if(d2 == 1):
                     complexity_pre = float(log(block_lancszos_complexity(nb_rows * 5, 64, n, nb_rows), 2))
                 else:
                     complexity_pre = float(log(nb_cols^2.81, 2))
+                """
+
+                complexity_pre = float(log(block_lancszos_complexity(257, 64, n, nb_rows), 2))
 
                 nb_cols_mac_d = nb_monomials_Mac_d(d2, k, n)
                 bw1 = block_wiendemann_complexity(n, 512, 512, d1, nb_cols_mac_d)
-                complex_exhaustive = float(log((n-k) * bw1, 2))
+                complex_exhaustive = float(log(2^(n-k) * bw1, 2))
 
                 footprint = get_footprint(nb_rows, nnz)
 
