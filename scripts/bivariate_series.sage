@@ -65,13 +65,28 @@ def nb_monomials(d1, d2, k, n):
     term2 = binomial((n - k), d1 - d2 - 1)
     return term1 * term2
 
+def nb_rows_M_D_d(n, m, k, D, d):
+    nb_rows = 0
+    for i in range(D+1):
+        nb_rows += binomial(n, i)
+    for i in range(d-1):
+        nb_rows -= binomial(k, i)
+    return nb_rows*m
+
+def block_lancszos_complexity(r, W, n, c):
+    tmp = max(n^2*c^2 / W, c^2)
+    return r/W * tmp
+
+def block_wiendemann_complexity(n, mp, np, d, N):
+    tmp1 = (1 + np / mp)
+    tmp2 = (n*n // 4 + n // 2 + 1 + mp)
+    return 2 * tmp1 * N * tmp2
+
 def sparse_factor(n, d1, d2, k):
     return (n*n // 4 + n // 2 + 1) / nb_monomials(d1, d2, k, n)
 
-def get_footprint(nb_cols, nb_rows, nnz):
-    footprint = nb_rows * 8
-    footprint += nnz * 8
-    return footprint
+def get_footprint(nb_rows, nnz):
+    return 4 * (nnz + nb_rows + 1)
 
 def parametres_admissibles(k, m, n):
     parametres = G_k_m_n(k, m, n).monomial_coefficients()
@@ -130,10 +145,9 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
             print_progress_bar(progress_counter, total_k)
 
             #print(f"k: {k}")
-            complex_exhaustive = ceil(log(n - k)).bit_length() + (n - k)
             p_admi = parametres_admissibles_crossbred(k, m, n)
 
-            f.write(f"\n\nexhaustive search over {n - k} bits costing 2^{complex_exhaustive}:\n")
+            f.write(f"\n\nexhaustive search over {n - k} bits\n")
 
             data_rows = []
 
@@ -151,18 +165,21 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                     continue
 
                 h_coeff = g_dict[ETuple(list(d))]
-                nrows = h_coeff + nb_cols
-                nnz = (n*n // 4 + n // 2 + 1) * (nrows)
+                nb_rows = nb_rows_M_D_d(n, m, k, d1, d2)
+                nnz = (n*n // 4 + n // 2 + 1) * (nb_rows)
 
                 if(d2 == 1):
                     #Time complexity is O(nb_col*nnz) using block lanczos or wiedemann if d2 = 1
-                    complexity_pre = float(log(nb_cols * nnz, 2))
-                    footprint = get_footprint(nb_cols, nrows, nnz)
+                    complexity_pre = float(log(block_lancszos_complexity(value//4, 64, n, nb_rows), 2))
                 else:
                     complexity_pre = float(log(nb_cols^2.81, 2))
-                    footprint = ceil(nb_cols / 8)*nrows
 
-                row = (footprint, d1, d2, nrows, nb_cols, complexity_pre)
+                bw1 = block_wiendemann_complexity(n, 512, 512, d1, nb_cols)
+                complex_exhaustive = float(log((n-k) * bw1, 2))
+
+                footprint = get_footprint(nb_rows, nnz)
+
+                row = (footprint, d1, d2, nb_rows, nb_cols, complexity_pre)
                 data_rows.append(row)
 
             data_rows.sort()
@@ -251,7 +268,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(256, 257, 120, 220, "parametres_admissibles_crossbred_sbc/257_256.csv")
+try_parameters_crossbred(256, 257, 120, 240, "parametres_admissibles_crossbred_sbc/257_256.csv")
 #parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
