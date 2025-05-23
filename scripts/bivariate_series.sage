@@ -141,8 +141,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
     """
     with open(fn, "w") as f:
         # File header
-        f.write("d1,d2,value_J,nb_cols,complexity_pre,estimated_footprint,sparsity_%\n")
-        f.write(f"#n = {n} m = {m}\n")
+        f.write(f"#n = {n} m = {m}\nGenerating series precision {prec}")
         sizes = []
         fastest_data = []
         fastest_combined_data = []
@@ -159,8 +158,6 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
 
             #print(f"k: {k}")
             p_admi = parametres_admissibles_crossbred(k, m, n)
-
-            f.write(f"\n\nexhaustive search over {n - k} bits\n")
 
             data_rows = []
 
@@ -181,15 +178,9 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 nb_rows = nb_rows_M_D_d(n, m, k, d1, d2)
                 nnz = (n*n // 4 + n // 2 + 1) * (nb_rows)
 
-                """
-                if(d2 == 1):
-                    complexity_pre = float(log(block_lancszos_complexity(nb_rows * 5, 64, n, nb_rows), 2))
-                else:
-                    complexity_pre = float(log(nb_cols^2.81, 2))
-                """
-
-                complexity_pre = float(log(block_lancszos_complexity(257, 64, n, nb_rows), 2))
-
+                complexity_lancszos = float(log(block_lancszos_complexity(257, 64, n, nb_rows), 2))
+                complexity_strassen = float(log(max(nb_cols, nb_rows)^2.81, 2))
+                complexity_pre = min(complexity_lancszos, complexity_strassen)
                 nb_cols_mac_d = nb_monomials_Mac_d(d2, k, n)
                 bw1 = block_wiendemann_complexity(n, 512, 512, d1, nb_cols_mac_d)
                 complex_exhaustive = float(log(2^(n-k) * bw1, 2))
@@ -205,30 +196,28 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                     sizes.append((data_rows[i][0], data_rows[i][5], data_rows[i][1], data_rows[i][2], n-k))
                     fastest_data.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
 
-            for footprint, d1, d2, value, nb_cols, complexity_pre in data_rows[:10]:
-                f.write(f"{d1},{d2},{value},{nb_cols},{complexity_pre},{format_bytes(footprint)}\n")
-
         f.write("\n\nBest memory footprint:\n")
+        f.write("Memory footprint | Memory footprint log_2 | Complexity pre | D | d | n-k\n")
         sizes.sort()
         for data in sizes[:6]:
             if len(data) >= 5:
-                f.write(f"{format_bytes(data[0])} | {data[1]} | {data[2]} | {data[3]} | {data[4]}\n")
+                f.write(f"{format_bytes(data[0])} | {float(log(data[0], 2))} | {data[1]} | {data[2]} | {data[3]} | {data[4]}\n")
             else:
                 print("Skipping data: not enough elements", data)
 
-        f.write("\n\nBest complexity complexity_pre | complexity_ex| d1 | d2 | footprint | n-k:\n")
+        f.write("\n\nBest complexity\ncomplexity_pre| complexity_ex| d1 | d2 | Memory footprint | Memory footprint log_2 | n-k:\n")
         fastest_data.sort()
         for data in fastest_data[:6]:
             if len(data) >= 5:
-                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
+                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {float(log(data[4], 2))} | {data[5]}\n")
             else:
                 print("Skipping data: not enough elements", data)
 
-        f.write("\n\nBest max complexity complexity_pre | complexity_ex| d1 | d2 | footprint | n-k:\n")
+        f.write("\n\nBest max complexity\ncomplexity_pre | complexity_ex| d1 | d2 | Memory footprint | Memory footprint log_2 | n-k:\n")
         fastest_data.sort(key=lambda x: max(x[0], x[1]))
         for data in fastest_data[:6]:
             if len(data) >= 5:
-                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {data[5]}\n")
+                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {float(log(data[4], 2))}| {data[5]}\n")
             else:
                 print("Skipping data: not enough elements", data)
     print()
@@ -275,7 +264,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(256, 257, 120, 240, "parametres_admissibles_crossbred_sbc/257_256.csv")
+try_parameters_crossbred(256, 257, 128, 240, "parametres_admissibles_crossbred_sbc/257_256.csv")
 #parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
