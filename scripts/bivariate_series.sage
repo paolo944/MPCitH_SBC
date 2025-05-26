@@ -2,7 +2,7 @@ import time
 import sys
 from sage.rings.polynomial.polydict import ETuple
 
-prec = 50
+prec = 35
 
 def format_bytes(size):
     size = float(size)
@@ -145,6 +145,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         sizes = []
         fastest_data = []
         fastest_combined_data = []
+        fastest_d2 = []
 
         total_k = k_max - k_min + 1
         progress_counter = 0
@@ -178,12 +179,13 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 nb_rows = nb_rows_M_D_d(n, m, k, d1, d2)
                 nnz = (n*n // 4 + n // 2 + 1) * (nb_rows)
 
-                complexity_lancszos = float(log(block_lancszos_complexity(257, 64, n, nb_rows), 2))
+                complexity_lancszos = float(log(block_lancszos_complexity(256, 64, n, nb_rows), 2))
                 complexity_strassen = float(log(max(nb_cols, nb_rows)^2.81, 2))
                 complexity_pre = min(complexity_lancszos, complexity_strassen)
                 nb_cols_mac_d = nb_monomials_Mac_d(d2, k, n)
                 bw1 = block_wiendemann_complexity(n, 512, 512, d1, nb_cols_mac_d)
-                complex_exhaustive = float(log(2^(n-k) * bw1, 2))
+                strassen = float(log(nb_cols_mac_d^2.81, 2))
+                complex_exhaustive = float(log(2^(n-k) * min(bw1, strassen), 2))
 
                 footprint = get_footprint(nb_rows, nnz)
 
@@ -195,6 +197,8 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 if data_rows[i][0] > 0:
                     sizes.append((data_rows[i][0], data_rows[i][5], data_rows[i][1], data_rows[i][2], n-k))
                     fastest_data.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
+                    if(data_rows[i][2] == 1):
+                        fastest_d2.append((data_rows[i][5], complex_exhaustive, data_rows[i][1], data_rows[i][2], data_rows[i][0], n-k))
 
         f.write("\n\nBest memory footprint:\n")
         f.write("Memory footprint | Memory footprint log_2 | Complexity pre | D | d | n-k\n")
@@ -216,6 +220,14 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
         f.write("\n\nBest max complexity\ncomplexity_pre | complexity_ex| d1 | d2 | Memory footprint | Memory footprint log_2 | n-k:\n")
         fastest_data.sort(key=lambda x: max(x[0], x[1]))
         for data in fastest_data[:6]:
+            if len(data) >= 5:
+                f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {float(log(data[4], 2))}| {data[5]}\n")
+            else:
+                print("Skipping data: not enough elements", data)
+        
+        f.write("\n\nBest max complexity for d==1\ncomplexity_pre | complexity_ex| d1 | d2 | Memory footprint | Memory footprint log_2 | n-k:\n")
+        fastest_d2.sort(key=lambda x: max(x[0], x[1]))
+        for data in fastest_d2[:6]:
             if len(data) >= 5:
                 f.write(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {format_bytes(data[4])} | {float(log(data[4], 2))}| {data[5]}\n")
             else:
@@ -264,7 +276,7 @@ def parametres_crossbred_sbc(min_n, max_n):
 #parametres_crossbred_sbc(256, 257)
 
 start = time.time()
-try_parameters_crossbred(256, 257, 128, 240, "parametres_admissibles_crossbred_sbc/257_256.csv")
+try_parameters_crossbred(257, 256, 128, 240, "parametres_admissibles_crossbred_sbc/257_256_256.csv")
 #parametres_crossbred_sbc(100, 256)
 end = time.time()
 print(f"{end - start} s")
