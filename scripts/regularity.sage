@@ -109,7 +109,6 @@ for i in system:
 I = ideal(system2)
 
 field = ZZ
-poly_ring.<t> = PolynomialRing(field)
 series_ring.<z> = PowerSeriesRing(field)
 
 n = system[0].parent().ngens()
@@ -131,22 +130,23 @@ n = system[0].parent().ngens()
 #with open(sys.argv[-1], "w") as f:
 #    f.write(magma_str)
 
-denom = 1
+term1 = 1
 for i in system2:
-    denom *= (1-t**i.degree())
+    term1 *= (1-z**i.degree())
 
-denom = series_ring(denom)
-num = series_ring((1-t)**n)
-res = num.inverse_of_unit() * denom
-print(f"Generating series of the sequence: {res}")
+term2 = (1-z)**n
+gen_serie = term1 / term2
+n_neg = next(i for i in range(gen_serie.prec()) if gen_serie[i] <= 0)
 
 bi_reg = hilbert_biseries(3, 7)
 bi_reg_uni = convert_bi_series(bi_reg)
-hilbert_series = I.hilbert_series()
-hilbert_series_denom = hilbert_series.denominator()
-hilbert_series_num = hilbert_series.numerator()
-res2 = series_ring(hilbert_series_num) * series_ring(hilbert_series_denom).inverse_of_unit()
-print(f"The hilbert series of I is: {res2}")
-print(f"Série bi-regulière: {bi_reg}")
-print(f"Série bi-regulière convertie: {bi_reg_uni}")
+hilbert_series = series_ring(I.hilbert_series())
+print(f"The hilbert series of I is: {hilbert_series}\n")
+print(f"Generating series of the sequence: {gen_serie}")
+print(f"First degree of non positif term : {n_neg}\n",)
+print(f"Série bi-regulière: {bi_reg}\n")
+print(f"Série bi-regulière convertie: {bi_reg_uni}\n")
 print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
+
+equal_up_to = all(gen_serie[i] == hilbert_series[i] for i in range(n_neg))
+print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
