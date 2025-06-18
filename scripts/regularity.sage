@@ -45,32 +45,30 @@ def homogenize(system, R):
         system_homo.append(poly_homo)
     return system_homo
 
-def hilbert_biseries(n, m):
-    R.<t1,t2> = PowerSeriesRing(ZZ)
-    denom = (1 - t1)^(n + 1) * (1 - t2)^(n+1)
-    Nm = (1 - t1*t2)^m
-    S1 = 0
-    S2 = 0
+def Nm(n, m, t1, t2):
+    Sum = 0
     for l in range(1, m - (n + 1) + 1):
         term1 = (1 - t1*t2)^(m - (n + 1) - l) * t1*t2*(1-t2)^(n + 1)
-        term2 = (1 - t1*t2)^(m - (n + 1) - l) * t1*t2*(1-t1)^(n + 1)
-
         Brackets1 = 1 - (1 - t1)^l
-        Brackets2 = 1 - (1 - t1)^l
-        S1_in = 0
-        S2_in = 0
+        Sum_in = 0
 
         for k in range(1, n + 1):
-            S1_in += t1^(n + 1 - k)*binomial(l + n - k, n + 1 - k)
-            S1_in += t2^(n + 1 - k)*binomial(l + n - k, n + 1 - k)
-        
-        Brackets1 *= S1_in
-        Brackets2 *= S2_in
+            Sum_in += t1^(n + 1 - k)*binomial(l + n - k, n + 1 - k)
 
-        S1 += term1 * S1_in
-        S2 += term2 * S2_in
-    Nm += S1 + S2
-    return Nm / denom
+        Brackets1 *= Sum_in
+
+        Sum += term1 * Sum_in
+
+    return Sum
+
+def hilbert_biseries(nx, ny, m):
+    R.<tx,ty> = PowerSeriesRing(ZZ)
+    denom = (1 - tx)^(nx + 1) * (1 - ty)^(ny+1)
+    num = (1 - tx*ty)^m
+    S1 = Nm(ny, m, tx, ty)
+    S2 = Nm(nx, m, ty, tx)
+    num += S1 + S2
+    return num / denom
 
 def convert_bi_series(Hs):
     coefficients = Hs.monomial_coefficients()
@@ -108,8 +106,7 @@ for i in system:
 
 I = ideal(system2)
 
-field = ZZ
-series_ring.<z> = PowerSeriesRing(field)
+series_ring.<z> = PowerSeriesRing(ZZ)
 
 n = system[0].parent().ngens()
 
@@ -138,15 +135,17 @@ term2 = (1-z)**n
 gen_serie = term1 / term2
 n_neg = next(i for i in range(gen_serie.prec()) if gen_serie[i] <= 0)
 
-bi_reg = hilbert_biseries(3, 7)
-bi_reg_uni = convert_bi_series(bi_reg)
-hilbert_series = series_ring(I.hilbert_series())
-print(f"The hilbert series of I is: {hilbert_series}\n")
-print(f"Generating series of the sequence: {gen_serie}")
-print(f"First degree of non positif term : {n_neg}\n",)
-print(f"Série bi-regulière: {bi_reg}\n")
-print(f"Série bi-regulière convertie: {bi_reg_uni}\n")
-print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
+#bi_reg = hilbert_biseries(3, 3, 7)
+#bi_reg_uni = convert_bi_series(bi_reg)
+#hilbert_series = series_ring(I.hilbert_series())
+#print(f"The hilbert series of I is: {hilbert_series}\n")
+#print(f"Generating series of the sequence: {gen_serie}")
+#print(f"First degree of non positif term : {n_neg}\n",)
+#print(f"Série bi-regulière: {bi_reg}\n")
+#print(f"Série bi-regulière convertie: {bi_reg_uni}\n")
+#print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
 
-equal_up_to = all(gen_serie[i] == hilbert_series[i] for i in range(n_neg))
-print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
+#equal_up_to = all(gen_serie[i] == hilbert_series[i] for i in range(n_neg))
+#print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
+
+print(hilbert_biseries(3, 4, 5))
