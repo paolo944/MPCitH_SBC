@@ -48,26 +48,22 @@ def homogenize(system, R):
 def Nm(n, m, t1, t2):
     Sum = 0
     for l in range(1, m - (n + 1) + 1):
-        term1 = (1 - t1*t2)^(m - (n + 1) - l) * t1*t2*(1-t2)^(n + 1)
-        Brackets1 = 1 - (1 - t1)^l
-        Sum_in = 0
-
-        for k in range(1, n + 1):
-            Sum_in += t1^(n + 1 - k)*binomial(l + n - k, n + 1 - k)
-
-        Brackets1 *= Sum_in
-
-        Sum += term1 * Sum_in
-
+        term = ((1 - t1*t2)^(m - (n + 1) - l)) * t1*t2*(1-t2)^(n + 1)
+        bracket = 1 - (1 - t1)^l
+        sum_in = 0
+        for k in range(1, n + 2):
+            sum_in += (t1^(n + 1 - k))*binomial(l + n - k, n + 1 - k)
+        bracket *= sum_in
+        Sum += term * bracket
     return Sum
 
 def hilbert_biseries(nx, ny, m):
-    R.<tx,ty> = PowerSeriesRing(ZZ)
-    denom = (1 - tx)^(nx + 1) * (1 - ty)^(ny+1)
+    R.<tx,ty> = PowerSeriesRing(ZZ, default_prec=5)
+    denom = ((1 - tx)^(nx + 1)) * ((1 - ty)^(ny+1))
     num = (1 - tx*ty)^m
-    S1 = Nm(ny, m, tx, ty)
-    S2 = Nm(nx, m, ty, tx)
-    num += S1 + S2
+    num = Nm(ny, m, tx, ty)
+    num = Nm(nx, m, ty, tx)
+    print(num)
     return num / denom
 
 def convert_bi_series(Hs):
