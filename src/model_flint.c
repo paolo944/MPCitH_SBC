@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     // Random init
     flint_rand_t state;
-    flint_randinit(state);
+    flint_rand_init(state);
 
     ulong q = 2;            // Field characteristic
     slong n = atoi(argv[1]);// Vectors size
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
     nmod_mpoly_ctx_clear(system_mpoly_ring);
     fq_nmod_ctx_clear(field);
 
-    flint_randclear(state);
+    flint_rand_clear(state);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
