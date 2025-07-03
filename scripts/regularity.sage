@@ -47,21 +47,37 @@ def homogenize(system, R):
 
 def Nm(n, m, t1, t2):
     sum_l = 0
-    for l in range(1, m - n + 2):
+    for l in range(1, m - n + 1):
         sum_k = 0
-        for k in range(1, n + 2):
-            sum_k += (t1^(n + 1 - k))*binomial(l + n - k, n + 1 - k)
-        bracket = (1 - (1 - t1)^l) * sum_k
-        term = ((1 - t1*t2)^(m - (n + 1) - l)) * t1*t2*((1 - t2)^(n + 1))
+        for k in range(1, n + 1):
+            sum_k += (t1^(n - k))*binomial(l + n - k - 1, n - k)
+        bracket = 1 - (1 - t1)**l * sum_k
+        term = ((1 - t1*t2)^(m - n - l)) * t1*t2*((1 - t2)^(n))
         sum_l += term * bracket
     return sum_l
 
 def hilbert_biseries(nx, ny, m):
     R.<tx,ty> = PowerSeriesRing(ZZ, default_prec=5)
-    denom = ((1 - tx)^(nx + 1)) * ((1 - ty)^(ny + 1))
+    denom = ((1 - tx)^(nx)) * ((1 - ty)^(ny))
     num = (1 - tx*ty)^m + Nm(ny, m, tx, ty) + Nm(nx, m, ty, tx)
     print(f"numerateur: {num}\n")
     return num / denom
+
+def theoric_BHS(tx, ty, nx, ny, m):
+    Nm = (1-tx*ty)**m
+    for l in range(1, m - ny + 1):
+        tmp1 = (1 - tx*ty)**(m - ny - l)*tx*ty*(1-ty)**(ny)
+        tmp2 = 0
+        for k in range(1, ny + 1):
+            tmp2 += tx**(ny - k) * binomial(l + ny - k - 1, ny - k)
+        Nm += tmp1*(1 - (1-tx)**l * tmp2)
+    for l in range(1, m - nx + 1):
+        tmp1 = (1 - tx*ty)**(m - nx - l)*tx*ty*(1-tx)**nx
+        tmp2 = 0
+        for k in range(1, nx + 1):
+            tmp2 += ty**(nx- k) * binomial(l + nx - k - 1, nx - k)
+        Nm += tmp1*(1 - (1 - ty)**l * tmp2)
+    return Nm / ((1-tx)**nx *(1-ty)**ny)
 
 def convert_bi_series(Hs):
     coefficients = Hs.monomial_coefficients()
@@ -141,4 +157,7 @@ n_neg = next(i for i in range(gen_serie.prec()) if gen_serie[i] <= 0)
 #equal_up_to = all(gen_serie[i] == hilbert_series[i] for i in range(n_neg))
 #print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
 
-print(hilbert_biseries(3, 4, 5))
+print(hilbert_biseries(2, 3, 7))
+
+R.<tx,ty> = PowerSeriesRing(ZZ, default_prec=5)
+print(theoric_BHS(tx, ty, 2, 3, 7))
