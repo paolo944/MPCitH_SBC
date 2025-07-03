@@ -63,22 +63,6 @@ def hilbert_biseries(nx, ny, m):
     print(f"numerateur: {num}\n")
     return num / denom
 
-def theoric_BHS(tx, ty, nx, ny, m):
-    Nm = (1-tx*ty)**m
-    for l in range(1, m - ny + 1):
-        tmp1 = (1 - tx*ty)**(m - ny - l)*tx*ty*(1-ty)**(ny)
-        tmp2 = 0
-        for k in range(1, ny + 1):
-            tmp2 += tx**(ny - k) * binomial(l + ny - k - 1, ny - k)
-        Nm += tmp1*(1 - (1-tx)**l * tmp2)
-    for l in range(1, m - nx + 1):
-        tmp1 = (1 - tx*ty)**(m - nx - l)*tx*ty*(1-tx)**nx
-        tmp2 = 0
-        for k in range(1, nx + 1):
-            tmp2 += ty**(nx- k) * binomial(l + nx - k - 1, nx - k)
-        Nm += tmp1*(1 - (1 - ty)**l * tmp2)
-    return Nm / ((1-tx)**nx *(1-ty)**ny)
-
 def convert_bi_series(Hs):
     coefficients = Hs.monomial_coefficients()
     prec = Hs.prec()
@@ -158,6 +142,3 @@ n_neg = next(i for i in range(gen_serie.prec()) if gen_serie[i] <= 0)
 #print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
 
 print(hilbert_biseries(2, 3, 7))
-
-R.<tx,ty> = PowerSeriesRing(ZZ, default_prec=5)
-print(theoric_BHS(tx, ty, 2, 3, 7))
