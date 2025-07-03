@@ -57,10 +57,9 @@ def Nm(n, m, t1, t2):
     return sum_l
 
 def hilbert_biseries(nx, ny, m):
-    R.<tx,ty> = PowerSeriesRing(ZZ, default_prec=5)
+    R.<tx,ty> = PowerSeriesRing(ZZ, default_prec=max(nx, ny) +2)
     denom = ((1 - tx)^(nx)) * ((1 - ty)^(ny))
     num = (1 - tx*ty)^m + Nm(ny, m, tx, ty) + Nm(nx, m, ty, tx)
-    print(f"numerateur: {num}\n")
     return num / denom
 
 def convert_bi_series(Hs):
@@ -102,7 +101,7 @@ I = ideal(system2)
 series_ring.<z> = PowerSeriesRing(ZZ)
 
 n = system[0].parent().ngens()
-
+#
 #magma_str = "F := GaloisField(2);\n"
 #variables = ', '.join(f'x{i+1}' for i in range(n/2))
 #variables += ', ' + ', '.join(f'y{i+1}' for i in range(n/2))
@@ -119,26 +118,58 @@ n = system[0].parent().ngens()
 ## Sauvegarde dans un fichier texte
 #with open(sys.argv[-1], "w") as f:
 #    f.write(magma_str)
-
+#
 term1 = 1
 for i in system2:
     term1 *= (1-z**i.degree())
 
 term2 = (1-z)**n
 gen_serie = term1 / term2
-n_neg = next(i for i in range(gen_serie.prec()) if gen_serie[i] <= 0)
-
-#bi_reg = hilbert_biseries(3, 3, 7)
-#bi_reg_uni = convert_bi_series(bi_reg)
-#hilbert_series = series_ring(I.hilbert_series())
-#print(f"The hilbert series of I is: {hilbert_series}\n")
-#print(f"Generating series of the sequence: {gen_serie}")
+#n_neg = next(i for i in range(gen_serie.prec()) if gen_serie[i] <= 0)
+#
+bi_reg = hilbert_biseries(4, 4, 9)
+bi_reg_uni = convert_bi_series(bi_reg)
+hilbert_series = series_ring(I.hilbert_series())
+print(f"The hilbert series of I is: {hilbert_series}\n")
+print(f"Generating series of the sequence: {gen_serie}\n")
 #print(f"First degree of non positif term : {n_neg}\n",)
-#print(f"Série bi-regulière: {bi_reg}\n")
-#print(f"Série bi-regulière convertie: {bi_reg_uni}\n")
-#print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
+print(f"Série bi-regulière: {bi_reg}\n")
+print(f"Série bi-regulière convertie: {bi_reg_uni}\n")
+print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
 
 #equal_up_to = all(gen_serie[i] == hilbert_series[i] for i in range(n_neg))
 #print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
 
-print(hilbert_biseries(2, 3, 7))
+
+neg_coeffs = load("scripts/neg_coeffs_128_128_257.sobj")
+for i, j in neg_coeffs.items():
+    print(f'{i}: {j}')
+#
+min_deg_deg = 130
+min_deg_monomial = 0
+min_deg_coeff = 0
+
+min_coeff_coeff = -2895640507456856514805834469828912633846067050403218588917176002391601569024
+min_coeff_monomial = 0
+min_coeff_deg = 0
+
+for monomial, coeff in neg_coeffs.items():
+    if monomial.degree() < min_deg_deg:
+        min_deg_deg = monomial.degree()
+        min_deg_monomial = monomial
+        min_deg_coeff = coeff
+    if coeff > min_coeff_coeff:
+        min_coeff_coeff = coeff
+        min_coeff_monomial = monomial
+        min_coeff_deg = monomial.degree()
+
+print(min_deg_deg)
+print(min_deg_monomial)
+print(min_deg_coeff)
+print()
+print(min_coeff_deg)
+print(min_coeff_monomial)
+print(min_coeff_coeff)
+
+serie = load("scripts/bi_serie_128_128_257.sobj")
+print(serie)
