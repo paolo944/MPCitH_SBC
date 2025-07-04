@@ -121,23 +121,32 @@ def generating_bardet_series(system):
     term2 = (1-z)**n
     return term1 / term2
 
+def print_help():
+    print("Two use examples of the script:")
+    print("\t$sage regularity.sage random n m")
+    print("\t$sage regularity.sage system_file.sobj")
 
 if __name__ == "__main__":
     import sys
 
-    if(sys.argv[1] == "random"):
+    if(len(sys.argv) == 4 and sys.argv[1] == "random"):
         try:
             R = PolynomialRing(GF(2), int(sys.argv[2]), 'x')
             system = doit(int(sys.argv[2]), int(sys.argv[3]), R)
         except Exception as error:
             print("Error while generating the random system: ", error)
-            sys.exit(1)
-    else:
+            print_help()
+            sys.exit()
+    elif(len(sys.argv) == 2):
         try:
             system = load(sys.argv[1])
         except Exception as error:
             print("Erreur during the loading of the system: ", error)
-            sys.exit(1)
+            print_help()
+            sys.exit()
+    else:
+        print_help()
+        sys.exit()
 
     system_homo = homogenized_ideal(system)
     I = ideal(system_homo)
