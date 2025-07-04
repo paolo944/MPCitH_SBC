@@ -81,6 +81,54 @@ Where n is the vector size, format is one of the following:
 [sage, msolve, hpXbred, magma] and 0 or 1 for if you want to include the field's
 equations or not.
 
+## Script files:
+
+### bivariate_series.sage
+
+Script to generate bivariate power series of CrossBred
+to do some tests and generate files for each number of polynomials
+and variables with complexity estimates, etc.
+
+### f5.sage
+
+A toy example of F5. Does it work ?
+
+### key_init.sage
+
+This script is described above to generate NSBC random keys
+
+### modelisation.sage
+
+This script is described above for the system modelisation in sagemath
+
+### most_common.sage
+
+Script that analyze the number of monomials present and other
+useful stuff.
+
+### regularity.sage
+
+This script computes some power series about the regularity/semi-regularity
+of a given polynomial system. It also computes the bi-variate Hilbert series
+of a bi-homogeneous polynomial system.
+It also computes the actual Hilbert series of the system and the Bardet
+generating series of the system if it is semi-regular.
+There is two ways to launch the script:
+
+```console
+$ sage scripts/regularity.sage random {n} {m}
+```
+
+where n is the number of variables and m the number of polynomials.
+
+To use an actual generated system:
+
+```console
+$ sage scripts/regularity.sage {path_to_system_file}
+```
+
+The file must be in a .sobj format for it to work.
+
 ## Bug Report:
 
 For any bug report or any question:
