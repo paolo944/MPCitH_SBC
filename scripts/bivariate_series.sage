@@ -98,8 +98,28 @@ def block_wiendemann_complexity(n, mp, np, d, N):
 def sparse_factor(n, d1, d2, k):
     return (n*n // 4 + n // 2 + 1) / nb_monomials(d1, d2, k, n)
 
-def get_footprint(nb_rows, nnz):
-    return 4 * (nnz + nb_rows + 1)
+def get_footprint(n, m, k, d, D, sparse):
+    if sparse:
+        term1 = n^2 + + n//2 + 2
+        term2 = 0
+        term3 = 0
+        for i in range(D+1):
+            term3 += binomial(n, i)
+            if i <= d - 2:
+                term2 += binomial(k, i)
+        term2 = (term3 - term2) * m
+        term3 = ceil(ceil(log(term3, 2)) * 1/8)
+        return term1 * term2 * term3
+    else:
+        term1 = 0
+        term2 = 0
+        for i in range(D+1):
+            term1 += binomial(n, i)
+            if i <= d - 2:
+                term2 += binomial(k, i)
+        term2 = (term1 - term2)*m
+        term1 = ceil(ceil(log(term1, 2))*1/8)
+        return term2 * term1
 
 def parametres_admissibles(k, m, n):
     parametres = G_k_m_n(k, m, n).monomial_coefficients()
@@ -187,7 +207,7 @@ def try_parameters_crossbred(m, n, k_min, k_max, fn):
                 strassen = float(log(nb_cols_mac_d^2.81, 2))
                 complex_exhaustive = float(log(2^(n-k) * min(bw1, strassen), 2))
 
-                footprint = get_footprint(nb_rows, nnz)
+                footprint = get_footprint(n, m, k, d2, d1, bw1 < strassen)
 
                 row = (footprint, d1, d2, nb_rows, nb_cols, complexity_pre)
                 data_rows.append(row)
