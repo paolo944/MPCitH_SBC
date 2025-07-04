@@ -154,7 +154,7 @@ if __name__ == "__main__":
     bi_reg_uni = convert_bi_series(bi_reg)
     hilbert_series = series_ring(I.hilbert_series())
 
-    print(f"Series for a polynomial system defined over {system[0].parent()} with {n} variables and {len(system)} polynomials")
+    print(f"Series for a polynomial system defined over {system[0].base_ring()} with {n} variables and {len(system)} polynomials")
 
     print(f"The hilbert series of I computed by sage (using the grobner basis) is: {hilbert_series}\n")
     print(f"Bardet generating series of the sequence: {gen_serie}\n")
