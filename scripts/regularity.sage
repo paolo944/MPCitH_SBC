@@ -71,7 +71,7 @@ def convert_bi_series(Hs):
         H += coeff*z^(t1 + t2)
     return H
 
-def write_homogenized_system_magma(f, system):
+def write_homogenized_system_magma(fn, system):
     """
     Writes the homogenized system in a magma type file
     """
@@ -87,10 +87,8 @@ def write_homogenized_system_magma(f, system):
     f_list = ', '.join(f"f{i+1}" for i in range(len(system)))
     magma_str += f"PolynomialSystem := [{f_list}];\n"
     
-    print(sys.argv[-1])
-    
     # Sauvegarde dans un fichier texte
-    with open(f, "w") as fd:
+    with open(fn, "w") as fd:
         fd.write(magma_str)
 
 def homogenized_ideal(system):
@@ -171,6 +169,8 @@ if __name__ == "__main__":
     print(f"Hilbert bi-series: {bi_reg}\n")
     print(f"Converted bi-series with tx=ty: {bi_reg_uni}\n")
     print(f"degree of semi-regularity of I: {I.degree_of_semi_regularity()}")
+
+    write_homogenized_system_magma("system_homo.magma", system_homo)
 
     #equal_up_to = all(gen_serie[i] == hilbert_series[i] for i in range(n_neg))
     #print(f"Is the sequence semi-regular ? {"yes" if equal_up_to else "no"}")
