@@ -112,6 +112,7 @@ def generate_system(n, field_eq_op, verbose):
 
     # Créer l'anneau de polynômes en x1, x2,..., xn-2 et y1, y2,..., yn-2
     R = PolynomialRing(F_qn, monomials_str)
+    Rp = PolynomialRing(F_q, monomials_str)
 
     # Convertir les monomiaux en polynômes dans R
     monomials = [R(monom) for monom in monomials_str]
@@ -138,6 +139,8 @@ def generate_system(n, field_eq_op, verbose):
     basis = [F_qn.gen()**i for i in range(k)]
 
     system = decompose_g(R, g, basis, monomials_str, k)
+
+    monomials = [Rp(monom) for monom in monomials_str]
 
     if(field_eq_op):
         if verbose:
