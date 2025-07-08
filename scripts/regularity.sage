@@ -1,4 +1,4 @@
-def doit(n, m):
+def doit(n, m, R):
     """
     Generate random system of n variables and m
     polynomials on GF(2)
