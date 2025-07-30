@@ -1,5 +1,59 @@
 import time
 
+def linear_dependance(F):
+    for i in range(len(F) -1):
+        lm = F[i].lm()
+        if lm.total_degree() != 2:
+            print("Erreur, pas quadratique")
+        for j in F[i+1:]:
+            j = F[i] + j
+            if j == 0:
+                print("dépéndance!!")
+
+def iterated_frobenius(x):
+    """
+    Applique les itérés du morphisme de Frobenius à un élément x ∈ F_{q^k}.
+    
+    Paramètres :
+        x : élément de F_{q^k}
+        q : cardinal du corps de base (F_q)
+        k : degré de l'extension (F_{q^k})
+
+    Retour :
+        Une liste [x^q, x^{q^2}, ..., x^{q^k}]
+    """
+    poly_ring = x.parent()
+    _, Fqk = poly_ring.construction()
+
+    n = poly_ring.ngens()
+
+    monomials_str = ['x'+str(i) for i in range(1, n//2 + 1)] + ['y'+str(i) for i in range(1, n//2 + 1)]
+    variables = [poly_ring(monom) for monom in monomials_str]
+    field_eq = [mon**2 + mon for mon in variables]
+    quotient_ring = poly_ring.quotient(field_eq)
+    
+    q = Fqk.characteristic()
+    k = Fqk.degree()
+    l = [x]
+    for _ in range(1, k+1):
+        l.append(quotient_ring(l[-1]^q).lift())
+        #print(l[-1])
+    return l
+
+def remove_monomials_powers(system):
+    n = system[0].parent().ngens()
+
+    monomials_str = ['x'+str(i) for i in range(1, n//2 + 1)] + ['y'+str(i) for i in range(1, n//2 + 1)]
+    poly_ring = PolynomialRing(GF(2), monomials_str, order='degrevlex')
+    variables = [poly_ring(monom) for monom in monomials_str]
+    field_eq = [mon**2 + mon for mon in variables]
+    quotient_ring = poly_ring.quotient(field_eq)
+
+    new_system = []
+    for f in system:
+        new_system.append(quotient_ring(f))
+    return new_system
+
 def read_privkey(f):
     vec = []
     B = GF(2)
@@ -70,6 +124,23 @@ def decompose_g(R, g, basis, monomials_str, k):
                 system[j] += Rprime(monomials[i])
     return system
 
+def decompose_g_list(R, g_list, basis, monomials_str, k):
+    p = R.characteristic()
+    Rprime = PolynomialRing(GF(p), monomials_str)
+    system = []
+    for ii, g in enumerate(g_list):
+        system_tmp = [Rprime(0) for i in range(k)]
+        monomials = g.monomials()
+        g_coeffs = [g.monomial_coefficient(i) for i in monomials]
+        for i in range(len(g_coeffs)):
+            tmp_coeffs = g_coeffs[i].list()
+            for j in range(len(tmp_coeffs)):
+                if(tmp_coeffs[j] == 1):
+                    system_tmp[j] += Rprime(monomials[i])
+        system += system_tmp
+        print(f"{ii}/{len(g_list)}")
+    return system
+
 def generate_system(n, field_eq_op, verbose):
     if n < 1:
         print("the vector's size must be positive")
@@ -138,7 +209,11 @@ def generate_system(n, field_eq_op, verbose):
 
     basis = [F_qn.gen()**i for i in range(k)]
 
-    system = decompose_g(R, g, basis, monomials_str, k)
+    s = iterated_frobenius(g)
+
+    #system = decompose_g(R, g, basis, monomials_str, k)
+
+    system2 = decompose_g_list(R, s, basis, monomials_str, k)
 
     monomials = [Rp(monom) for monom in monomials_str]
 
@@ -153,14 +228,15 @@ def generate_system(n, field_eq_op, verbose):
         t += nvars
 
     file = f"system/sage/system_bilin_{nvars}_{t}.sobj"
-    save(system, file)
+    #save(system, file)
     if verbose:
         print("system computed")
         end_time = time.time()
         print(f"Temps d'exécution : {end_time - start_time} secondes")
         print(f"system written in {file}")
 
-    return (system, file)
+    return (system2, file)
+    #return (system, system2, file)
 
 
 if __name__ == '__main__':
@@ -171,4 +247,12 @@ if __name__ == '__main__':
 
     n = int(sys.argv[1])
     field_eq = bool(int(sys.argv[2]))
-    generate_system(n, field_eq, True)
+    Fp, f = generate_system(n, field_eq, True)
+    print(len(Fp))
+    #print(Fp, end="\n\n")
+    #print(F, end="\n\n")
+
+    #Fp = remove_monomials_powers(Fp)
+    #print(Fp, end="\n\n")
+    f = f[:-5] + "_test.sobj"
+    save(Fp, f)
