@@ -209,11 +209,11 @@ def generate_system(n, field_eq_op, verbose):
 
     basis = [F_qn.gen()**i for i in range(k)]
 
-    s = iterated_frobenius(g)
+    #s = iterated_frobenius(g)
 
-    #system = decompose_g(R, g, basis, monomials_str, k)
+    system = decompose_g(R, g, basis, monomials_str, k)
 
-    system2 = decompose_g_list(R, s, basis, monomials_str, k)
+    #system2 = decompose_g_list(R, s, basis, monomials_str, k)
 
     monomials = [Rp(monom) for monom in monomials_str]
 
@@ -228,15 +228,15 @@ def generate_system(n, field_eq_op, verbose):
         t += nvars
 
     file = f"system/sage/system_bilin_{nvars}_{t}.sobj"
-    #save(system, file)
+    save(system, file)
     if verbose:
         print("system computed")
         end_time = time.time()
         print(f"Temps d'exécution : {end_time - start_time} secondes")
         print(f"system written in {file}")
 
-    return (system2, file)
-    #return (system, system2, file)
+    #return (system2, file)
+    return (system, file)
 
 
 if __name__ == '__main__':
@@ -248,11 +248,11 @@ if __name__ == '__main__':
     n = int(sys.argv[1])
     field_eq = bool(int(sys.argv[2]))
     Fp, f = generate_system(n, field_eq, True)
-    print(len(Fp))
+    #print(len(Fp))
     #print(Fp, end="\n\n")
     #print(F, end="\n\n")
 
     #Fp = remove_monomials_powers(Fp)
     #print(Fp, end="\n\n")
-    f = f[:-5] + "_test.sobj"
-    save(Fp, f)
+    #f = f[:-5] + "_test.sobj"
+    #save(Fp, f)
